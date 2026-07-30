@@ -3,219 +3,780 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ตรวจระบบ LIFF — NaiBaaN Cafe'</title>
+<title>สั่งเครื่องดื่ม — NaiBaaN Cafe'</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --ink:#17171a; --ink-2:#5b5b63; --ink-3:#8d8d96;
-    --paper:#fbfbf9; --card:#ffffff; --rule:#e4e4de;
-    --pass:#2f7a4f; --pass-bg:#eaf4ee;
-    --fail:#a83232; --fail-bg:#fbecec;
-    --wait:#8d8d96; --wait-bg:#f2f2ee;
-    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai",sans-serif;
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0; background:var(--paper); color:var(--ink);
-    font-family:var(--sans); font-size:15px; line-height:1.6;
-    padding:24px 16px calc(24px + env(safe-area-inset-bottom));
-  }
-  .wrap{max-width:520px;margin:0 auto}
-  h1{font-size:19px;font-weight:600;margin:0 0 2px;letter-spacing:-0.01em}
-  .sub{color:var(--ink-2);font-size:13px;margin:0 0 20px}
+:root{
+  --ink:#2a211c; --ink-2:#6b5f57; --ink-3:#9c9089;
+  --paper:#f7f4ef; --card:#fffdfa; --rule:#e6ded4;
+  --leaf:#4f6b4a; --leaf-soft:#eaf0e7;
+  --amber:#a86b1f; --amber-soft:#f7eede;
+  --alert:#a33b2c; --alert-soft:#fbeae7;
+  --r:12px;
+  --font:'IBM Plex Sans Thai',-apple-system,BlinkMacSystemFont,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);color:var(--ink);font-family:var(--font);
+  font-size:15px;line-height:1.6;padding-bottom:96px;
+}
+.wrap{max-width:560px;margin:0 auto;padding:0 14px}
+h1,h2,h3{margin:0;font-weight:600;letter-spacing:-0.01em}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+:focus-visible{outline:2px solid var(--leaf);outline-offset:2px}
+.hide{display:none !important}
 
-  .check{
-    display:flex;gap:12px;align-items:flex-start;
-    padding:13px 14px;background:var(--card);
-    border:1px solid var(--rule);border-radius:10px;margin-bottom:8px;
-  }
-  .dot{
-    flex:none;width:22px;height:22px;border-radius:50%;
-    display:grid;place-items:center;font-size:12px;font-weight:700;
-    background:var(--wait-bg);color:var(--wait);margin-top:1px;
-  }
-  .check[data-s="pass"] .dot{background:var(--pass-bg);color:var(--pass)}
-  .check[data-s="fail"] .dot{background:var(--fail-bg);color:var(--fail)}
-  .check .label{font-size:14px;font-weight:500}
-  .check .val{
-    font-family:var(--mono);font-size:12px;color:var(--ink-2);
-    word-break:break-all;margin-top:2px;
-  }
-  .check[data-s="fail"] .val{color:var(--fail)}
+/* header */
+header{padding:16px 0 12px;display:flex;align-items:center;gap:11px}
+.mark{
+  flex:none;width:34px;height:34px;border:1.5px solid var(--ink);
+  border-radius:3px 3px 5px 5px;position:relative;
+}
+.mark::before{
+  content:"";position:absolute;left:-1.5px;right:-1.5px;top:-11px;height:11px;
+  border:1.5px solid var(--ink);border-bottom:0;
+  clip-path:polygon(50% 0,100% 100%,0 100%);
+}
+header h1{font-size:17px;line-height:1.25}
+header .meta{font-size:12px;color:var(--ink-2);font-weight:400}
 
-  .panel{
-    background:var(--card);border:1px solid var(--rule);
-    border-radius:10px;padding:14px;margin-top:16px;
-  }
-  .panel h2{font-size:13px;font-weight:600;margin:0 0 10px;color:var(--ink-2)}
-  .kv{display:flex;justify-content:space-between;gap:12px;padding:5px 0;font-size:13px}
-  .kv + .kv{border-top:1px solid var(--rule)}
-  .kv dt{color:var(--ink-2);flex:none}
-  .kv dd{margin:0;font-family:var(--mono);font-size:12px;text-align:right;word-break:break-all}
+/* generic */
+.card{background:var(--card);border:1px solid var(--rule);border-radius:var(--r)}
+.sec{margin-top:18px}
+.sec > h2{font-size:12px;font-weight:600;color:var(--ink-2);letter-spacing:.06em;margin-bottom:8px}
 
-  button{
-    width:100%;margin-top:14px;padding:12px;font:inherit;font-size:14px;font-weight:500;
-    background:var(--ink);color:#fff;border:0;border-radius:9px;cursor:pointer;
-  }
-  button:active{opacity:.85}
-  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+/* rounds */
+.rounds{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.rounds::-webkit-scrollbar{display:none}
+.round{
+  flex:none;min-width:132px;padding:11px 13px;text-align:left;
+  background:var(--card);border:1px solid var(--rule);border-radius:var(--r);
+}
+.round[aria-pressed="true"]{border-color:var(--leaf);box-shadow:inset 0 0 0 1px var(--leaf)}
+.round .d{font-size:14px;font-weight:500}
+.round .t{font-size:12px;color:var(--ink-2)}
+.round .f{font-size:11px;color:var(--leaf);font-weight:500;margin-top:2px}
 
-  .note{
-    margin-top:16px;padding:12px 14px;border-radius:9px;
-    background:var(--fail-bg);border:1px solid #f0d4d4;
-    font-size:13px;color:var(--fail);display:none;
-  }
-  .note.show{display:block}
-  .note code{font-family:var(--mono);font-size:12px}
-  dl{margin:0}
+/* reorder */
+.reorder{
+  width:100%;display:flex;gap:10px;align-items:center;text-align:left;
+  padding:12px 14px;background:var(--leaf-soft);border-radius:var(--r);
+}
+.reorder .t1{font-size:13px;font-weight:500;color:#33472f}
+.reorder .t2{font-size:12px;color:#4f6b4a}
+
+/* menu */
+.cat{font-size:12px;font-weight:600;color:var(--ink-3);margin:16px 0 6px}
+.item{
+  width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:13px 14px;background:var(--card);border:1px solid var(--rule);
+  border-radius:var(--r);margin-bottom:7px;text-align:left;
+}
+.item .n{font-size:15px}
+.item .p{font-size:13px;color:var(--ink-2)}
+.item .add{
+  flex:none;width:28px;height:28px;border-radius:50%;border:1px solid var(--rule);
+  display:grid;place-items:center;font-size:17px;color:var(--ink-2);line-height:1;
+}
+.item .cnt{
+  flex:none;min-width:28px;height:28px;border-radius:14px;background:var(--ink);color:#fff;
+  display:grid;place-items:center;font-size:13px;font-weight:500;padding:0 8px;
+}
+
+/* option sheet */
+.veil{
+  position:absolute;inset:0;background:rgba(42,33,28,.4);z-index:40;
+}
+.sheetwrap{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet{
+  position:relative;z-index:41;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;
+  background:var(--card);border-radius:16px 16px 0 0;
+  padding:18px 16px calc(18px + env(safe-area-inset-bottom));
+}
+.sheet h3{font-size:17px}
+.sheet .price{font-size:13px;color:var(--ink-2);margin-bottom:14px}
+.grp{margin-bottom:14px}
+.grp .lbl{font-size:12px;color:var(--ink-2);margin-bottom:6px}
+.grp .lbl b{color:var(--alert);font-weight:400}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{
+  padding:7px 14px;border-radius:20px;border:1px solid var(--rule);
+  font-size:13px;color:var(--ink-2);background:var(--card);
+}
+.chip[aria-pressed="true"]{background:var(--leaf);border-color:var(--leaf);color:#fff}
+.qtyrow{display:flex;align-items:center;justify-content:space-between;margin:16px 0}
+.qtybox{display:flex;align-items:center;gap:16px}
+.qtybtn{width:34px;height:34px;border:1px solid var(--rule);border-radius:50%;font-size:19px;line-height:1}
+
+/* forms */
+label.f{display:block;margin-bottom:12px}
+label.f span{display:block;font-size:12px;color:var(--ink-2);margin-bottom:5px}
+input,select,textarea{
+  width:100%;font:inherit;font-size:15px;padding:11px 12px;color:var(--ink);
+  background:var(--card);border:1px solid var(--rule);border-radius:9px;
+}
+textarea{resize:vertical;min-height:64px}
+
+/* progress */
+.prog{padding:12px 14px;border-radius:var(--r);background:var(--amber-soft);margin-top:10px}
+.prog .txt{font-size:12px;color:var(--amber);font-weight:500}
+.bar{height:5px;border-radius:3px;background:#eadcc4;margin-top:7px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--amber);border-radius:3px;transition:width .25s}
+.prog.done{background:var(--leaf-soft)}
+.prog.done .txt{color:var(--leaf)}
+.prog.done .bar{background:#d5e2d0}
+.prog.done .bar i{background:var(--leaf)}
+
+/* summary */
+.sum{padding:14px}
+.sumrow{display:flex;justify-content:space-between;font-size:14px;padding:4px 0}
+.sumrow.total{border-top:1px solid var(--rule);margin-top:8px;padding-top:10px;font-size:17px;font-weight:600}
+.sumrow .muted{color:var(--ink-2)}
+.strike{text-decoration:line-through;color:var(--ink-3);margin-right:6px}
+
+/* bottom bar */
+.bar-fixed{
+  position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);
+  border-top:1px solid var(--rule);
+  padding:11px 14px calc(11px + env(safe-area-inset-bottom));
+}
+.bar-inner{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.bar-inner .info{flex:1;min-width:0}
+.bar-inner .c1{font-size:12px;color:var(--ink-2)}
+.bar-inner .c2{font-size:18px;font-weight:600}
+.cta{
+  flex:none;padding:13px 22px;border-radius:10px;background:var(--ink);color:#fff;
+  font-size:15px;font-weight:500;
+}
+.cta[disabled]{opacity:.35}
+.cta.wide{flex:1;text-align:center}
+.cta.ghost{background:none;border:1px solid var(--rule);color:var(--ink)}
+
+/* notices */
+.notice{padding:12px 14px;border-radius:var(--r);font-size:13px;margin-top:12px}
+.notice.err{background:var(--alert-soft);color:var(--alert)}
+.notice.info{background:var(--card);border:1px solid var(--rule);color:var(--ink-2)}
+.center{text-align:center;padding:56px 20px;color:var(--ink-2);font-size:14px}
+
+/* confirmation */
+.qrbox{text-align:center;padding:18px}
+.qrbox canvas,.qrbox img{margin:0 auto;display:block}
+.oid{font-size:13px;color:var(--ink-2);letter-spacing:.04em}
+.amt{font-size:30px;font-weight:600;margin:2px 0 14px}
 </style>
 </head>
 <body>
+
 <div class="wrap">
+  <header>
+    <div class="mark" aria-hidden="true"></div>
+    <div>
+      <h1>NaiBaaN Cafe' ในบ้าน</h1>
+      <div class="meta" id="greet">กำลังโหลด…</div>
+    </div>
+  </header>
 
-  <h1>ตรวจระบบ LIFF</h1>
-  <p class="sub">NaiBaaN Cafe' ในบ้าน — หน้านี้ใช้ทดสอบอย่างเดียว ไม่ใช่หน้าสั่งซื้อ</p>
+  <div id="boot" class="center">กำลังเชื่อมต่อ…</div>
+  <div id="bootErr" class="notice err hide"></div>
 
-  <div class="check" id="c-sdk" data-s="wait">
-    <div class="dot">·</div>
-    <div><div class="label">โหลด LIFF SDK</div><div class="val" id="v-sdk">กำลังโหลด…</div></div>
+  <!-- ══ หน้าเลือกเมนู ══ -->
+  <main id="viewMenu" class="hide">
+    <div class="sec">
+      <h2>เลือกรอบส่ง</h2>
+      <div class="rounds" id="rounds"></div>
+    </div>
+
+    <div class="sec hide" id="reorderWrap">
+      <button class="reorder" id="reorderBtn" type="button">
+        <span style="font-size:18px">↻</span>
+        <span><span class="t1">สั่งซ้ำแก้วเดิม</span><br><span class="t2" id="reorderTxt"></span></span>
+      </button>
+    </div>
+
+    <div class="sec">
+      <h2>เมนู</h2>
+      <div id="menuList"></div>
+    </div>
+
+    <div id="progWrap"></div>
+  </main>
+
+  <!-- ══ หน้ายืนยันข้อมูลจัดส่ง ══ -->
+  <main id="viewCheckout" class="hide">
+    <div class="sec">
+      <h2>ส่งที่ไหน</h2>
+      <div class="card" style="padding:14px">
+        <label class="f"><span>จุดส่ง</span><select id="fPoint"></select></label>
+        <label class="f"><span id="fDetailLabel">รายละเอียดเพิ่มเติม</span>
+          <input id="fDetail" type="text" placeholder="ชั้น 2 ห้องการเงิน" maxlength="120"></label>
+        <label class="f"><span>ชื่อเล่น</span>
+          <input id="fName" type="text" placeholder="ชื่อที่ให้เรียก" maxlength="40"></label>
+        <label class="f" style="margin-bottom:0"><span>เบอร์โทร</span>
+          <input id="fPhone" type="tel" inputmode="numeric" placeholder="08xxxxxxxx" maxlength="15"></label>
+      </div>
+      <div class="notice info">เบอร์โทรจำเป็นเสมอ ถ้าหาที่ส่งไม่เจอ ทางร้านจะโทรหาคุณ</div>
+    </div>
+
+    <div class="sec">
+      <h2>ชำระเงิน</h2>
+      <div class="chips" id="payChips"></div>
+      <div id="codNote"></div>
+    </div>
+
+    <div class="sec">
+      <h2>ฝากถึงร้าน</h2>
+      <textarea id="fNote" placeholder="ไม่บังคับ" maxlength="200"></textarea>
+    </div>
+
+    <div class="sec">
+      <h2>สรุป</h2>
+      <div class="card sum" id="sumBox"></div>
+    </div>
+
+    <div id="orderErr" class="notice err hide"></div>
+  </main>
+
+  <!-- ══ หน้ายืนยันผล ══ -->
+  <main id="viewDone" class="hide">
+    <div class="sec">
+      <div class="card qrbox" id="doneBox"></div>
+    </div>
+  </main>
+</div>
+
+<!-- ══ แผ่นเลือกตัวเลือก ══ -->
+<div class="sheetwrap hide" id="sheetWrap" role="dialog" aria-modal="true">
+  <div class="veil" id="sheetVeil"></div>
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<!-- ══ แถบล่าง ══ -->
+<div class="bar-fixed hide" id="barFixed">
+  <div class="bar-inner">
+    <div class="info"><div class="c1" id="barSub"></div><div class="c2" id="barTotal"></div></div>
+    <button class="cta" id="barBtn" type="button"></button>
   </div>
-
-  <div class="check" id="c-init" data-s="wait">
-    <div class="dot">·</div>
-    <div><div class="label">เชื่อมต่อ LIFF ID</div><div class="val" id="v-init">รอ SDK</div></div>
-  </div>
-
-  <div class="check" id="c-client" data-s="wait">
-    <div class="dot">·</div>
-    <div><div class="label">เปิดจากในแอปไลน์</div><div class="val" id="v-client">รอเชื่อมต่อ</div></div>
-  </div>
-
-  <div class="check" id="c-login" data-s="wait">
-    <div class="dot">·</div>
-    <div><div class="label">ยืนยันตัวตน</div><div class="val" id="v-login">รอเชื่อมต่อ</div></div>
-  </div>
-
-  <div class="check" id="c-profile" data-s="wait">
-    <div class="dot">·</div>
-    <div><div class="label">ดึงโปรไฟล์ผู้ใช้</div><div class="val" id="v-profile">รอยืนยันตัวตน</div></div>
-  </div>
-
-  <div class="check" id="c-friend" data-s="wait">
-    <div class="dot">·</div>
-    <div><div class="label">แอดเพื่อนกับ LINE OA แล้ว</div><div class="val" id="v-friend">รอโปรไฟล์</div></div>
-  </div>
-
-  <div class="panel" id="detail" hidden>
-    <h2>ข้อมูลที่ได้รับ</h2>
-    <dl>
-      <div class="kv"><dt>userId</dt><dd id="d-uid">—</dd></div>
-      <div class="kv"><dt>ชื่อที่แสดง</dt><dd id="d-name">—</dd></div>
-      <div class="kv"><dt>เวอร์ชันไลน์</dt><dd id="d-ver">—</dd></div>
-      <div class="kv"><dt>ระบบปฏิบัติการ</dt><dd id="d-os">—</dd></div>
-      <div class="kv"><dt>ภาษา</dt><dd id="d-lang">—</dd></div>
-    </dl>
-    <button id="copy" type="button">คัดลอก userId</button>
-  </div>
-
-  <div class="note" id="note"></div>
-
 </div>
 
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-// ─────────────────────────────────────────────────────────
-// แก้บรรทัดข้างล่างนี้บรรทัดเดียว: วาง LIFF ID ของคุณลงไป
-const LIFF_ID = "2010900757-sQF00VQx";
-// ─────────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════
+   แก้สองบรรทัดนี้ก่อนใช้งาน
+   ═══════════════════════════════════════════════ */
+const LIFF_ID = "PASTE_YOUR_LIFF_ID_HERE";
+const API_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
+/* ═══════════════════════════════════════════════ */
 
-function mark(id, state, text) {
-  const el = document.getElementById("c-" + id);
-  el.dataset.s = state;
-  el.querySelector(".dot").textContent = state === "pass" ? "✓" : state === "fail" ? "✕" : "·";
-  document.getElementById("v-" + id).textContent = text;
+const $ = function (id) { return document.getElementById(id); };
+const THAI_DAY = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+const THAI_MON = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+var CFG = null, IDTOKEN = null, CART = [], ROUND = null, PAY = 'promptpay', LAST = null;
+
+/* ── utilities ────────────────────────────────── */
+function baht(n) { return Number(n).toLocaleString('th-TH'); }
+
+function dateLabel(ymd, offset) {
+  if (offset === 0) return 'วันนี้';
+  if (offset === 1) return 'พรุ่งนี้';
+  const p = ymd.split('-');
+  const d = new Date(+p[0], +p[1] - 1, +p[2]);
+  return THAI_DAY[d.getDay()] + ' ' + (+p[2]) + ' ' + THAI_MON[+p[1] - 1];
 }
 
-function fatal(msg) {
-  const n = document.getElementById("note");
-  n.innerHTML = msg;
-  n.classList.add("show");
+function api(params) {
+  const q = Object.keys(params).map(function (k) {
+    return k + '=' + encodeURIComponent(params[k]);
+  }).join('&');
+  return fetch(API_URL + '?' + q).then(readJson);
 }
 
-async function run() {
-  if (typeof liff === "undefined") {
-    mark("sdk", "fail", "โหลดไม่สำเร็จ");
-    fatal("โหลด LIFF SDK ไม่ได้ ตรวจสอบสัญญาณอินเทอร์เน็ต แล้วลองใหม่");
+function apiPost(body) {
+  return fetch(API_URL, {
+    method: 'POST',
+    // ใช้ text/plain เพื่อให้เป็น simple request — เลี่ยง preflight ที่ Apps Script ตอบไม่ได้
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(body)
+  }).then(readJson);
+}
+
+function readJson(res) {
+  return res.text().then(function (t) {
+    var j;
+    try { j = JSON.parse(t); }
+    catch (e) { throw new Error('เซิร์ฟเวอร์ตอบกลับผิดรูปแบบ — ตรวจว่า Deploy เป็น Web app และตั้ง Anyone แล้ว'); }
+    if (!j.ok) throw new Error(j.error || 'เกิดข้อผิดพลาด');
+    return j.data;
+  });
+}
+
+/* ── cart ─────────────────────────────────────── */
+function cartCups() {
+  return CART.reduce(function (s, l) { return s + l.qty; }, 0);
+}
+function cartSubtotal() {
+  return CART.reduce(function (s, l) { return s + (l.unitPrice + l.optionPrice) * l.qty; }, 0);
+}
+function isFreeRound() {
+  return !!(ROUND && ROUND.free_delivery);
+}
+function deliveryFee() {
+  if (isFreeRound() && cartCups() >= CFG.free_delivery_min_cups) return 0;
+  return CFG.delivery_fee;
+}
+function qtyOf(menuId) {
+  return CART.filter(function (l) { return l.menuId === menuId; })
+             .reduce(function (s, l) { return s + l.qty; }, 0);
+}
+
+/* ── render: rounds ───────────────────────────── */
+function renderRounds() {
+  const box = $('rounds');
+  box.innerHTML = '';
+  if (!CFG.rounds.length) {
+    box.innerHTML = '<div class="notice info" style="margin:0">ยังไม่มีรอบส่งที่เปิดรับตอนนี้ ลองใหม่อีกครั้งภายหลัง</div>';
     return;
   }
-  mark("sdk", "pass", "v" + (liff.getVersion ? liff.getVersion() : "2"));
+  CFG.rounds.forEach(function (r, i) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'round';
+    b.setAttribute('aria-pressed', String(ROUND && ROUND.round_id === r.round_id && ROUND.date === r.date));
+    b.innerHTML =
+      '<div class="d">' + dateLabel(r.date, r.day_offset) + ' ' + r.round_time + '</div>' +
+      '<div class="t">ปิดรับ ' + r.cutoff_time + ' น.</div>' +
+      (r.free_delivery ? '<div class="f">' + CFG.free_delivery_min_cups + ' แก้วส่งฟรี</div>' : '');
+    b.addEventListener('click', function () { ROUND = r; renderRounds(); renderProgress(); renderBar(); });
+    box.appendChild(b);
+  });
+}
 
-  if (LIFF_ID === "PASTE_YOUR_LIFF_ID_HERE" || !LIFF_ID) {
-    mark("init", "fail", "ยังไม่ได้ใส่ LIFF ID");
-    fatal("เปิดไฟล์นี้ด้วยโปรแกรมแก้ข้อความ หาบรรทัด <code>const LIFF_ID</code> แล้ววาง LIFF ID ของคุณแทน <code>PASTE_YOUR_LIFF_ID_HERE</code>");
-    return;
+/* ── render: menu ─────────────────────────────── */
+function renderMenu() {
+  const box = $('menuList');
+  box.innerHTML = '';
+  var lastCat = null;
+  CFG.menu.forEach(function (m) {
+    if (m.category && m.category !== lastCat) {
+      const h = document.createElement('div');
+      h.className = 'cat';
+      h.textContent = m.category;
+      box.appendChild(h);
+      lastCat = m.category;
+    }
+    const n = qtyOf(m.menu_id);
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'item';
+    b.innerHTML =
+      '<span><span class="n">' + esc(m.name) + '</span><br><span class="p">' + baht(m.price) + ' ฿</span></span>' +
+      (n > 0 ? '<span class="cnt">' + n + '</span>' : '<span class="add">+</span>');
+    b.addEventListener('click', function () { openSheet(m); });
+    box.appendChild(b);
+  });
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+  });
+}
+
+/* ── option sheet ─────────────────────────────── */
+function openSheet(menu) {
+  var qty = 1;
+  const picked = {};   // groupId -> [optionId]
+
+  function draw() {
+    var html = '<h3>' + esc(menu.name) + '</h3><div class="price">' + baht(menu.price) + ' ฿</div>';
+    menu.groups.forEach(function (g) {
+      html += '<div class="grp"><div class="lbl">' + esc(g.name) +
+        (g.is_required ? ' <b>* จำเป็น</b>' : (g.select_type === 'multi' ? ' (เลือกได้หลายอย่าง)' : '')) +
+        '</div><div class="chips">';
+      g.options.forEach(function (o) {
+        const on = (picked[g.group_id] || []).indexOf(o.option_id) >= 0;
+        html += '<button type="button" class="chip" aria-pressed="' + on + '" data-g="' + g.group_id +
+          '" data-o="' + o.option_id + '">' + esc(o.name) +
+          (o.price_delta ? ' +' + baht(o.price_delta) : '') + '</button>';
+      });
+      html += '</div></div>';
+    });
+
+    var extra = 0;
+    menu.groups.forEach(function (g) {
+      (picked[g.group_id] || []).forEach(function (oid) {
+        g.options.forEach(function (o) { if (o.option_id === oid) extra += o.price_delta; });
+      });
+    });
+
+    html +=
+      '<div class="qtyrow"><span style="font-size:13px;color:var(--ink-2)">จำนวน</span>' +
+      '<div class="qtybox"><button type="button" class="qtybtn" data-q="-1">−</button>' +
+      '<span style="font-size:17px;font-weight:500;min-width:20px;text-align:center">' + qty + '</span>' +
+      '<button type="button" class="qtybtn" data-q="1">+</button></div></div>' +
+      '<div style="display:flex;gap:10px">' +
+      '<button type="button" class="cta ghost" id="sClose">ยกเลิก</button>' +
+      '<button type="button" class="cta wide" id="sAdd">เพิ่ม ' + baht((menu.price + extra) * qty) + ' ฿</button></div>';
+
+    $('sheet').innerHTML = html;
+
+    Array.prototype.forEach.call($('sheet').querySelectorAll('.chip'), function (el) {
+      el.addEventListener('click', function () {
+        const gid = el.dataset.g, oid = el.dataset.o;
+        const g = menu.groups.filter(function (x) { return x.group_id === gid; })[0];
+        var cur = picked[gid] || [];
+        if (g.select_type === 'multi') {
+          picked[gid] = cur.indexOf(oid) >= 0 ? cur.filter(function (x) { return x !== oid; }) : cur.concat([oid]);
+        } else {
+          picked[gid] = cur.indexOf(oid) >= 0 ? [] : [oid];
+        }
+        draw();
+      });
+    });
+    Array.prototype.forEach.call($('sheet').querySelectorAll('.qtybtn'), function (el) {
+      el.addEventListener('click', function () {
+        qty = Math.max(1, Math.min(50, qty + Number(el.dataset.q)));
+        draw();
+      });
+    });
+    $('sClose').addEventListener('click', closeSheet);
+    $('sAdd').addEventListener('click', function () {
+      const missing = menu.groups.filter(function (g) {
+        return g.is_required && !(picked[g.group_id] || []).length;
+      });
+      if (missing.length) { alert('กรุณาเลือก' + missing[0].name); return; }
+
+      var optionIds = [], optionNames = [], optionPrice = 0;
+      menu.groups.forEach(function (g) {
+        (picked[g.group_id] || []).forEach(function (oid) {
+          g.options.forEach(function (o) {
+            if (o.option_id === oid) { optionIds.push(oid); optionNames.push(o.name); optionPrice += o.price_delta; }
+          });
+        });
+      });
+
+      const key = menu.menu_id + '|' + optionIds.slice().sort().join(',');
+      const same = CART.filter(function (l) { return l.key === key; })[0];
+      if (same) same.qty = Math.min(50, same.qty + qty);
+      else CART.push({
+        key: key, menuId: menu.menu_id, name: menu.name, unitPrice: menu.price,
+        optionIds: optionIds, optionNames: optionNames, optionPrice: optionPrice, qty: qty
+      });
+
+      closeSheet(); renderMenu(); renderProgress(); renderBar();
+    });
   }
 
+  $('sheetWrap').classList.remove('hide');
+  draw();
+}
+
+function closeSheet() { $('sheetWrap').classList.add('hide'); }
+$('sheetVeil').addEventListener('click', closeSheet);
+
+/* ── progress toward free delivery ────────────── */
+function renderProgress() {
+  const box = $('progWrap');
+  const cups = cartCups();
+  if (!isFreeRound() || !cups) { box.innerHTML = ''; return; }
+  const need = CFG.free_delivery_min_cups;
+  const done = cups >= need;
+  box.innerHTML =
+    '<div class="prog' + (done ? ' done' : '') + '"><div class="txt">' +
+    (done ? 'ครบ ' + need + ' แก้วแล้ว — รอบนี้ส่งฟรี'
+          : 'อีก ' + (need - cups) + ' แก้วได้ส่งฟรี (ชวนเพื่อนสั่งด้วยกันได้)') +
+    '</div><div class="bar"><i style="width:' + Math.min(100, cups / need * 100) + '%"></i></div></div>';
+}
+
+/* ── bottom bar ───────────────────────────────── */
+var VIEW = 'menu';
+
+function renderBar() {
+  const cups = cartCups();
+  const bar = $('barFixed');
+  if (VIEW === 'done') { bar.classList.add('hide'); return; }
+  if (VIEW === 'menu' && !cups) { bar.classList.add('hide'); return; }
+  bar.classList.remove('hide');
+
+  const fee = deliveryFee();
+  const total = cartSubtotal() + fee;
+  $('barSub').textContent = cups + ' แก้ว · ค่าส่ง ' + (fee ? baht(fee) + ' ฿' : 'ฟรี');
+  $('barTotal').textContent = baht(total) + ' ฿';
+
+  const btn = $('barBtn');
+  if (VIEW === 'menu') {
+    btn.textContent = 'ถัดไป';
+    btn.disabled = !ROUND;
+    btn.onclick = goCheckout;
+  } else {
+    btn.textContent = 'ยืนยันสั่งซื้อ';
+    btn.disabled = false;
+    btn.onclick = submitOrder;
+  }
+}
+
+/* ── checkout ─────────────────────────────────── */
+function goCheckout() {
+  if (!ROUND) { alert('กรุณาเลือกรอบส่ง'); return; }
+  VIEW = 'checkout';
+  $('viewMenu').classList.add('hide');
+  $('viewCheckout').classList.remove('hide');
+  window.scrollTo(0, 0);
+  renderSummary();
+  renderBar();
+}
+
+function renderSummary() {
+  const fee = deliveryFee();
+  var html = '';
+  CART.forEach(function (l) {
+    html += '<div class="sumrow"><span>' + esc(l.name) +
+      (l.optionNames.length ? ' <span class="muted">(' + esc(l.optionNames.join(', ')) + ')</span>' : '') +
+      ' ×' + l.qty + '</span><span>' + baht((l.unitPrice + l.optionPrice) * l.qty) + '</span></div>';
+  });
+  html += '<div class="sumrow"><span class="muted">ส่ง ' + dateLabel(ROUND.date, ROUND.day_offset) +
+    ' ' + ROUND.round_time + ' น.</span><span></span></div>';
+  html += '<div class="sumrow"><span class="muted">ค่าส่ง</span><span>' +
+    (fee === 0 && CFG.delivery_fee > 0 ? '<span class="strike">' + baht(CFG.delivery_fee) + '</span>ฟรี' : baht(fee)) +
+    '</span></div>';
+  html += '<div class="sumrow total"><span>รวม</span><span>' + baht(cartSubtotal() + fee) + ' ฿</span></div>';
+  $('sumBox').innerHTML = html;
+}
+
+function renderPayChips() {
+  const c = CFG.customer || {};
+  const codOk = !CFG.cod_requires_history || c.allow_cod || c.total_orders > 0;
+  $('payChips').innerHTML =
+    '<button type="button" class="chip" data-p="promptpay" aria-pressed="' + (PAY === 'promptpay') + '">โอนพร้อมเพย์</button>' +
+    (codOk ? '<button type="button" class="chip" data-p="cod" aria-pressed="' + (PAY === 'cod') + '">จ่ายปลายทาง</button>' : '');
+  $('codNote').innerHTML = codOk ? '' :
+    '<div class="notice info">ออเดอร์แรกชำระผ่านพร้อมเพย์ก่อน ครั้งถัดไปเลือกจ่ายปลายทางได้</div>';
+  Array.prototype.forEach.call($('payChips').querySelectorAll('.chip'), function (el) {
+    el.addEventListener('click', function () { PAY = el.dataset.p; renderPayChips(); });
+  });
+}
+
+/* ── submit ───────────────────────────────────── */
+var CLIENT_ORDER_ID = null;
+
+function submitOrder() {
+  const point = $('fPoint').value;
+  const detail = $('fDetail').value.trim();
+  const name = $('fName').value.trim();
+  const phone = $('fPhone').value.trim();
+
+  if (!point) return showErr('กรุณาเลือกจุดส่ง');
+  if (!name) return showErr('กรุณากรอกชื่อเล่น');
+  if (!/^0\d{8,9}$/.test(phone.replace(/\D/g, ''))) return showErr('เบอร์โทรไม่ถูกต้อง ต้องเป็น 10 หลักขึ้นต้นด้วย 0');
+
+  $('orderErr').classList.add('hide');
+  $('barBtn').disabled = true;
+  $('barBtn').textContent = 'กำลังบันทึก…';
+
+  // สุ่มครั้งเดียวต่อการกดหนึ่งครั้ง เพื่อให้กดซ้ำตอนเน็ตหลุดไม่สร้างออเดอร์ซ้ำ
+  if (!CLIENT_ORDER_ID) CLIENT_ORDER_ID = 'c' + Date.now() + Math.random().toString(36).slice(2, 8);
+
+  apiPost({
+    action: 'createOrder',
+    idToken: IDTOKEN,
+    clientOrderId: CLIENT_ORDER_ID,
+    roundId: ROUND.round_id,
+    date: ROUND.date,
+    pointId: point,
+    addressDetail: detail,
+    nickname: name,
+    phone: phone,
+    paymentMethod: PAY,
+    note: $('fNote').value.trim(),
+    items: CART.map(function (l) {
+      return { menuId: l.menuId, qty: l.qty, optionIds: l.optionIds };
+    })
+  }).then(showDone).catch(function (e) {
+    showErr(e.message);
+    $('barBtn').disabled = false;
+    $('barBtn').textContent = 'ยืนยันสั่งซื้อ';
+  });
+}
+
+function showErr(msg) {
+  const el = $('orderErr');
+  el.textContent = msg;
+  el.classList.remove('hide');
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function showDone(r) {
+  VIEW = 'done';
+  $('viewCheckout').classList.add('hide');
+  $('viewDone').classList.remove('hide');
+  $('barFixed').classList.add('hide');
+  window.scrollTo(0, 0);
+
+  var html =
+    '<div class="oid">' + esc(r.order_id) + '</div>' +
+    '<div class="amt">' + baht(r.total) + ' ฿</div>' +
+    '<div style="font-size:14px;color:var(--ink-2);margin-bottom:16px">ส่ง ' +
+    dateLabel(r.delivery_date, null) + ' รอบ ' + r.round_time + ' น.</div>';
+
+  if (r.payment_method === 'promptpay' && r.promptpay_id) {
+    html += '<div id="qr" style="margin:4px 0 14px"></div>' +
+      '<div style="font-size:13px;color:var(--ink-2)">สแกนจ่ายด้วยแอปธนาคาร<br>แล้วส่งสลิปในแชทร้านเพื่อยืนยัน</div>';
+  } else {
+    html += '<div style="font-size:14px">ชำระเงินปลายทางตอนรับของ</div>';
+  }
+  html += '<button type="button" class="cta wide" id="closeApp" style="margin-top:18px">เสร็จสิ้น</button>';
+  $('doneBox').innerHTML = html;
+
+  if (r.payment_method === 'promptpay' && r.promptpay_id) {
+    try {
+      new QRCode($('qr'), {
+        text: promptPayPayload(r.promptpay_id, r.total),
+        width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M
+      });
+    } catch (e) {
+      $('qr').innerHTML = '<div class="notice err">สร้าง QR ไม่สำเร็จ กรุณาโอนไปที่ ' +
+        esc(r.promptpay_id) + ' แล้วส่งสลิปในแชท</div>';
+    }
+  }
+  $('closeApp').addEventListener('click', function () {
+    if (liff.isInClient()) liff.closeWindow(); else location.reload();
+  });
+}
+
+/* ── PromptPay QR (มาตรฐาน EMVCo) ─────────────── */
+function tlv(id, value) {
+  return id + ('0' + value.length).slice(-2) + value;
+}
+
+function promptPayPayload(target, amount) {
+  const digits = String(target).replace(/\D/g, '');
+  var acct;
+  if (digits.length === 13) acct = tlv('02', digits);                    // เลขนิติบุคคล
+  else if (digits.length === 10) acct = tlv('01', '0066' + digits.slice(1)); // เบอร์มือถือ
+  else if (digits.length === 13) acct = tlv('02', digits);
+  else acct = tlv('02', digits);
+
+  var payload =
+    tlv('00', '01') +
+    tlv('01', '12') +
+    tlv('29', tlv('00', 'A000000677010111') + acct) +
+    tlv('53', '764') +
+    tlv('54', Number(amount).toFixed(2)) +
+    tlv('58', 'TH') +
+    '6304';
+  return payload + crc16(payload);
+}
+
+function crc16(str) {
+  var crc = 0xFFFF;
+  for (var i = 0; i < str.length; i++) {
+    crc ^= str.charCodeAt(i) << 8;
+    for (var j = 0; j < 8; j++) {
+      crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) & 0xFFFF : (crc << 1) & 0xFFFF;
+    }
+  }
+  return ('000' + crc.toString(16).toUpperCase()).slice(-4);
+}
+
+/* ── reorder ──────────────────────────────────── */
+function setupReorder(orders) {
+  const last = (orders || []).filter(function (o) { return o.order_status !== 'cancelled'; })[0];
+  if (!last || !last.items.length) return;
+  LAST = last;
+  $('reorderWrap').classList.remove('hide');
+  $('reorderTxt').textContent = last.items.map(function (i) {
+    return i.name + (i.options_text ? ' ' + i.options_text : '') + ' ×' + i.qty;
+  }).join(', ');
+
+  $('reorderBtn').addEventListener('click', function () {
+    CART = [];
+    last.items.forEach(function (i) {
+      const m = CFG.menu.filter(function (x) { return x.menu_id === i.menu_id; })[0];
+      if (!m) return;
+      // จับคู่ชื่อตัวเลือกเดิมกลับเป็น option_id ปัจจุบัน
+      var ids = [], names = [], price = 0;
+      String(i.options_text || '').split(',').map(function (s) { return s.trim(); })
+        .filter(Boolean).forEach(function (nm) {
+          m.groups.forEach(function (g) {
+            g.options.forEach(function (o) {
+              if (o.name === nm) { ids.push(o.option_id); names.push(o.name); price += o.price_delta; }
+            });
+          });
+        });
+      CART.push({
+        key: m.menu_id + '|' + ids.slice().sort().join(','),
+        menuId: m.menu_id, name: m.name, unitPrice: m.price,
+        optionIds: ids, optionNames: names, optionPrice: price, qty: i.qty
+      });
+    });
+    renderMenu(); renderProgress(); renderBar();
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  });
+}
+
+/* ── start ────────────────────────────────────── */
+function fail(msg) {
+  $('boot').classList.add('hide');
+  const el = $('bootErr');
+  el.textContent = msg;
+  el.classList.remove('hide');
+}
+
+async function start() {
+  if (LIFF_ID.indexOf('PASTE') === 0 || API_URL.indexOf('PASTE') === 0) {
+    return fail('ยังไม่ได้ใส่ LIFF_ID หรือ API_URL ในไฟล์ index.html');
+  }
   try {
     await liff.init({ liffId: LIFF_ID });
-    mark("init", "pass", LIFF_ID);
   } catch (e) {
-    mark("init", "fail", (e.code || "ERROR") + ": " + e.message);
-    fatal("เชื่อมต่อ LIFF ID ไม่สำเร็จ สาเหตุที่พบบ่อยคือ LIFF ID พิมพ์ผิด หรือ Endpoint URL ใน LINE Developers Console ยังไม่ตรงกับที่อยู่ของหน้านี้");
-    return;
+    return fail('เชื่อมต่อ LIFF ไม่สำเร็จ: ' + e.message);
   }
+  if (!liff.isLoggedIn()) { liff.login(); return; }
 
-  const inClient = liff.isInClient();
-  mark("client", inClient ? "pass" : "fail",
-    inClient ? "ใช่ — เปิดในแอปไลน์" : "ไม่ใช่ — เปิดผ่านเบราว์เซอร์ธรรมดา");
-
-  if (!liff.isLoggedIn()) {
-    mark("login", "fail", "ยังไม่ได้เข้าสู่ระบบ กำลังพาไปหน้าล็อกอิน");
-    liff.login();
-    return;
-  }
-  mark("login", "pass", "เรียบร้อย");
+  IDTOKEN = liff.getIDToken();
+  if (!IDTOKEN) return fail('ไม่ได้รับ ID token — ตรวจว่าติ๊ก scope openid ในหน้าตั้งค่า LIFF แล้ว');
 
   try {
-    const p = await liff.getProfile();
-    mark("profile", "pass", p.displayName);
-    document.getElementById("detail").hidden = false;
-    document.getElementById("d-uid").textContent = p.userId;
-    document.getElementById("d-name").textContent = p.displayName;
-    document.getElementById("d-ver").textContent = liff.getLineVersion() || "—";
-    document.getElementById("d-os").textContent = liff.getOS() || "—";
-    document.getElementById("d-lang").textContent = liff.getLanguage() || "—";
-
-    document.getElementById("copy").addEventListener("click", async () => {
-      const btn = document.getElementById("copy");
-      try {
-        await navigator.clipboard.writeText(p.userId);
-        btn.textContent = "คัดลอกแล้ว";
-      } catch {
-        btn.textContent = "คัดลอกไม่ได้ — กดค้างที่ตัวเลขเพื่อคัดลอกเอง";
-      }
-      setTimeout(() => { btn.textContent = "คัดลอก userId"; }, 2200);
-    });
+    CFG = await api({ action: 'bootstrap', idToken: IDTOKEN });
   } catch (e) {
-    mark("profile", "fail", (e.code || "ERROR") + ": " + e.message);
-    fatal("ดึงโปรไฟล์ไม่ได้ ตรวจว่าติ๊ก scope <code>profile</code> ไว้ในหน้าตั้งค่า LIFF แล้วหรือยัง");
-    return;
+    return fail(e.message);
   }
 
-  try {
-    const f = await liff.getFriendship();
-    mark("friend", f.friendFlag ? "pass" : "fail",
-      f.friendFlag ? "แอดแล้ว — ส่งแจ้งเตือนได้" : "ยังไม่ได้แอด — ส่งแจ้งเตือนไม่ได้");
-    if (!f.friendFlag) {
-      fatal("บัญชีนี้ยังไม่ได้แอดเพื่อนกับ LINE OA ของร้าน ถ้าเป็นแบบนี้กับลูกค้าทุกคน ให้กลับไปตรวจว่าตั้ง Bot link feature เป็น On (Aggressive) และผูก Linked LINE Official Account ไว้แล้ว");
-    }
-  } catch (e) {
-    mark("friend", "fail", (e.code || "ERROR") + ": " + e.message);
-    fatal("เช็กสถานะเพื่อนไม่ได้ มักเกิดจากยังไม่ได้ตั้ง Linked LINE Official Account ในแท็บ Basic settings ของ LINE Login channel");
-  }
+  if (!CFG.shop_open) return fail('ขณะนี้ร้านปิดรับออเดอร์ชั่วคราว');
+
+  const c = CFG.customer || {};
+  $('greet').textContent = (c.nickname ? 'สวัสดีคุณ' + c.nickname : 'ยินดีต้อนรับ') +
+    (c.points ? ' · ' + c.points + ' แต้ม' : '');
+
+  $('fPoint').innerHTML = '<option value="">— เลือกจุดส่ง —</option>' +
+    CFG.drop_points.map(function (p) {
+      return '<option value="' + p.point_id + '"' +
+        (p.point_id === c.default_point_id ? ' selected' : '') + '>' + esc(p.name) + '</option>';
+    }).join('');
+  $('fDetail').value = c.default_detail || '';
+  $('fName').value = c.nickname || '';
+  $('fPhone').value = c.phone || '';
+
+  $('fPoint').addEventListener('change', function () {
+    const p = CFG.drop_points.filter(function (x) { return x.point_id === $('fPoint').value; })[0];
+    $('fDetail').placeholder = (p && p.detail_hint) || 'รายละเอียดเพิ่มเติม';
+  });
+
+  if (CFG.rounds.length === 1) ROUND = CFG.rounds[0];
+
+  renderRounds(); renderMenu(); renderPayChips(); renderBar();
+  $('boot').classList.add('hide');
+  $('viewMenu').classList.remove('hide');
+
+  // โหลดประวัติทีหลัง ไม่ให้ถ่วงหน้าหลัก
+  api({ action: 'myOrders', idToken: IDTOKEN }).then(setupReorder).catch(function () {});
 }
 
-run();
+start();
 </script>
 </body>
 </html>
