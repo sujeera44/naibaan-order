@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ตรวจระบบ LIFF — NaiBaaN Cafe'</title>
+<style>
+  :root{
+    --ink:#17171a; --ink-2:#5b5b63; --ink-3:#8d8d96;
+    --paper:#fbfbf9; --card:#ffffff; --rule:#e4e4de;
+    --pass:#2f7a4f; --pass-bg:#eaf4ee;
+    --fail:#a83232; --fail-bg:#fbecec;
+    --wait:#8d8d96; --wait-bg:#f2f2ee;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:var(--sans); font-size:15px; line-height:1.6;
+    padding:24px 16px calc(24px + env(safe-area-inset-bottom));
+  }
+  .wrap{max-width:520px;margin:0 auto}
+  h1{font-size:19px;font-weight:600;margin:0 0 2px;letter-spacing:-0.01em}
+  .sub{color:var(--ink-2);font-size:13px;margin:0 0 20px}
+
+  .check{
+    display:flex;gap:12px;align-items:flex-start;
+    padding:13px 14px;background:var(--card);
+    border:1px solid var(--rule);border-radius:10px;margin-bottom:8px;
+  }
+  .dot{
+    flex:none;width:22px;height:22px;border-radius:50%;
+    display:grid;place-items:center;font-size:12px;font-weight:700;
+    background:var(--wait-bg);color:var(--wait);margin-top:1px;
+  }
+  .check[data-s="pass"] .dot{background:var(--pass-bg);color:var(--pass)}
+  .check[data-s="fail"] .dot{background:var(--fail-bg);color:var(--fail)}
+  .check .label{font-size:14px;font-weight:500}
+  .check .val{
+    font-family:var(--mono);font-size:12px;color:var(--ink-2);
+    word-break:break-all;margin-top:2px;
+  }
+  .check[data-s="fail"] .val{color:var(--fail)}
+
+  .panel{
+    background:var(--card);border:1px solid var(--rule);
+    border-radius:10px;padding:14px;margin-top:16px;
+  }
+  .panel h2{font-size:13px;font-weight:600;margin:0 0 10px;color:var(--ink-2)}
+  .kv{display:flex;justify-content:space-between;gap:12px;padding:5px 0;font-size:13px}
+  .kv + .kv{border-top:1px solid var(--rule)}
+  .kv dt{color:var(--ink-2);flex:none}
+  .kv dd{margin:0;font-family:var(--mono);font-size:12px;text-align:right;word-break:break-all}
+
+  button{
+    width:100%;margin-top:14px;padding:12px;font:inherit;font-size:14px;font-weight:500;
+    background:var(--ink);color:#fff;border:0;border-radius:9px;cursor:pointer;
+  }
+  button:active{opacity:.85}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  .note{
+    margin-top:16px;padding:12px 14px;border-radius:9px;
+    background:var(--fail-bg);border:1px solid #f0d4d4;
+    font-size:13px;color:var(--fail);display:none;
+  }
+  .note.show{display:block}
+  .note code{font-family:var(--mono);font-size:12px}
+  dl{margin:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>ตรวจระบบ LIFF</h1>
+  <p class="sub">NaiBaaN Cafe' ในบ้าน — หน้านี้ใช้ทดสอบอย่างเดียว ไม่ใช่หน้าสั่งซื้อ</p>
+
+  <div class="check" id="c-sdk" data-s="wait">
+    <div class="dot">·</div>
+    <div><div class="label">โหลด LIFF SDK</div><div class="val" id="v-sdk">กำลังโหลด…</div></div>
+  </div>
+
+  <div class="check" id="c-init" data-s="wait">
+    <div class="dot">·</div>
+    <div><div class="label">เชื่อมต่อ LIFF ID</div><div class="val" id="v-init">รอ SDK</div></div>
+  </div>
+
+  <div class="check" id="c-client" data-s="wait">
+    <div class="dot">·</div>
+    <div><div class="label">เปิดจากในแอปไลน์</div><div class="val" id="v-client">รอเชื่อมต่อ</div></div>
+  </div>
+
+  <div class="check" id="c-login" data-s="wait">
+    <div class="dot">·</div>
+    <div><div class="label">ยืนยันตัวตน</div><div class="val" id="v-login">รอเชื่อมต่อ</div></div>
+  </div>
+
+  <div class="check" id="c-profile" data-s="wait">
+    <div class="dot">·</div>
+    <div><div class="label">ดึงโปรไฟล์ผู้ใช้</div><div class="val" id="v-profile">รอยืนยันตัวตน</div></div>
+  </div>
+
+  <div class="check" id="c-friend" data-s="wait">
+    <div class="dot">·</div>
+    <div><div class="label">แอดเพื่อนกับ LINE OA แล้ว</div><div class="val" id="v-friend">รอโปรไฟล์</div></div>
+  </div>
+
+  <div class="panel" id="detail" hidden>
+    <h2>ข้อมูลที่ได้รับ</h2>
+    <dl>
+      <div class="kv"><dt>userId</dt><dd id="d-uid">—</dd></div>
+      <div class="kv"><dt>ชื่อที่แสดง</dt><dd id="d-name">—</dd></div>
+      <div class="kv"><dt>เวอร์ชันไลน์</dt><dd id="d-ver">—</dd></div>
+      <div class="kv"><dt>ระบบปฏิบัติการ</dt><dd id="d-os">—</dd></div>
+      <div class="kv"><dt>ภาษา</dt><dd id="d-lang">—</dd></div>
+    </dl>
+    <button id="copy" type="button">คัดลอก userId</button>
+  </div>
+
+  <div class="note" id="note"></div>
+
+</div>
+
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script>
+// ─────────────────────────────────────────────────────────
+// แก้บรรทัดข้างล่างนี้บรรทัดเดียว: วาง LIFF ID ของคุณลงไป
+const LIFF_ID = "PASTE_YOUR_LIFF_ID_HERE";
+// ─────────────────────────────────────────────────────────
+
+function mark(id, state, text) {
+  const el = document.getElementById("c-" + id);
+  el.dataset.s = state;
+  el.querySelector(".dot").textContent = state === "pass" ? "✓" : state === "fail" ? "✕" : "·";
+  document.getElementById("v-" + id).textContent = text;
+}
+
+function fatal(msg) {
+  const n = document.getElementById("note");
+  n.innerHTML = msg;
+  n.classList.add("show");
+}
+
+async function run() {
+  if (typeof liff === "undefined") {
+    mark("sdk", "fail", "โหลดไม่สำเร็จ");
+    fatal("โหลด LIFF SDK ไม่ได้ ตรวจสอบสัญญาณอินเทอร์เน็ต แล้วลองใหม่");
+    return;
+  }
+  mark("sdk", "pass", "v" + (liff.getVersion ? liff.getVersion() : "2"));
+
+  if (LIFF_ID === "PASTE_YOUR_LIFF_ID_HERE" || !LIFF_ID) {
+    mark("init", "fail", "ยังไม่ได้ใส่ LIFF ID");
+    fatal("เปิดไฟล์นี้ด้วยโปรแกรมแก้ข้อความ หาบรรทัด <code>const LIFF_ID</code> แล้ววาง LIFF ID ของคุณแทน <code>PASTE_YOUR_LIFF_ID_HERE</code>");
+    return;
+  }
+
+  try {
+    await liff.init({ liffId: LIFF_ID });
+    mark("init", "pass", LIFF_ID);
+  } catch (e) {
+    mark("init", "fail", (e.code || "ERROR") + ": " + e.message);
+    fatal("เชื่อมต่อ LIFF ID ไม่สำเร็จ สาเหตุที่พบบ่อยคือ LIFF ID พิมพ์ผิด หรือ Endpoint URL ใน LINE Developers Console ยังไม่ตรงกับที่อยู่ของหน้านี้");
+    return;
+  }
+
+  const inClient = liff.isInClient();
+  mark("client", inClient ? "pass" : "fail",
+    inClient ? "ใช่ — เปิดในแอปไลน์" : "ไม่ใช่ — เปิดผ่านเบราว์เซอร์ธรรมดา");
+
+  if (!liff.isLoggedIn()) {
+    mark("login", "fail", "ยังไม่ได้เข้าสู่ระบบ กำลังพาไปหน้าล็อกอิน");
+    liff.login();
+    return;
+  }
+  mark("login", "pass", "เรียบร้อย");
+
+  try {
+    const p = await liff.getProfile();
+    mark("profile", "pass", p.displayName);
+    document.getElementById("detail").hidden = false;
+    document.getElementById("d-uid").textContent = p.userId;
+    document.getElementById("d-name").textContent = p.displayName;
+    document.getElementById("d-ver").textContent = liff.getLineVersion() || "—";
+    document.getElementById("d-os").textContent = liff.getOS() || "—";
+    document.getElementById("d-lang").textContent = liff.getLanguage() || "—";
+
+    document.getElementById("copy").addEventListener("click", async () => {
+      const btn = document.getElementById("copy");
+      try {
+        await navigator.clipboard.writeText(p.userId);
+        btn.textContent = "คัดลอกแล้ว";
+      } catch {
+        btn.textContent = "คัดลอกไม่ได้ — กดค้างที่ตัวเลขเพื่อคัดลอกเอง";
+      }
+      setTimeout(() => { btn.textContent = "คัดลอก userId"; }, 2200);
+    });
+  } catch (e) {
+    mark("profile", "fail", (e.code || "ERROR") + ": " + e.message);
+    fatal("ดึงโปรไฟล์ไม่ได้ ตรวจว่าติ๊ก scope <code>profile</code> ไว้ในหน้าตั้งค่า LIFF แล้วหรือยัง");
+    return;
+  }
+
+  try {
+    const f = await liff.getFriendship();
+    mark("friend", f.friendFlag ? "pass" : "fail",
+      f.friendFlag ? "แอดแล้ว — ส่งแจ้งเตือนได้" : "ยังไม่ได้แอด — ส่งแจ้งเตือนไม่ได้");
+    if (!f.friendFlag) {
+      fatal("บัญชีนี้ยังไม่ได้แอดเพื่อนกับ LINE OA ของร้าน ถ้าเป็นแบบนี้กับลูกค้าทุกคน ให้กลับไปตรวจว่าตั้ง Bot link feature เป็น On (Aggressive) และผูก Linked LINE Official Account ไว้แล้ว");
+    }
+  } catch (e) {
+    mark("friend", "fail", (e.code || "ERROR") + ": " + e.message);
+    fatal("เช็กสถานะเพื่อนไม่ได้ มักเกิดจากยังไม่ได้ตั้ง Linked LINE Official Account ในแท็บ Basic settings ของ LINE Login channel");
+  }
+}
+
+run();
+</script>
+</body>
+</html>
