@@ -311,6 +311,9 @@ textarea{resize:vertical;min-height:62px}
 const LIFF_ID  = "2010900757-sQF00VQx";
 const API_URL  = "https://script.google.com/macros/s/AKfycby4IsPRN2s1nOHaevkiCX1oTBziASBGvIl79_nEh0z6FD1fo2wW1Xb33VBI2vLngw8HTw/exec";
 const LOGO_URL = "logo.png";
+// ที่อยู่เต็มของ repo — ต้องมี / ปิดท้าย เช่น "https://sujeera44.github.io/naibaan-order/"
+// ใช้ต่อหน้าค่า image_url ในชีต เพื่อกันปัญหาเส้นทางเพี้ยนเมื่อเปิดจากในแอปไลน์
+const IMG_BASE = "PASTE_YOUR_PAGES_URL_HERE";
 /* ═══════════════════════════════════════════════ */
 
 const $ = function (id) { return document.getElementById(id); };
@@ -445,7 +448,9 @@ function renderPoints() {
   sel.innerHTML = '<option value="">— เลือกสถานที่ส่ง —</option>' +
     CFG.drop_points.map(function (p) {
       return '<option value="' + p.point_id + '"' + (p.point_id === POINT ? ' selected' : '') +
-        '>' + esc(p.name) + (p.free_delivery ? ' · ส่งฟรี' : '') + '</option>';
+        '>' + esc(p.name) +
+        (p.free_delivery ? ' · ส่งฟรี' : ' · ' + CFG.free_delivery_min_cups + ' แก้วส่งฟรี') +
+        '</option>';
     }).join('');
   sel.onchange = function () { POINT = sel.value; renderPointNote(); renderBar(); };
   renderPointNote();
@@ -471,19 +476,30 @@ function renderPointNote() {
   const n = cups(), min = CFG.free_delivery_min_cups;
   hint.innerHTML = n >= min
     ? '<span class="badge free">ส่งฟรี</span>'
-    : '<span class="badge fee">ค่าส่ง ' + baht(CFG.delivery_fee) + ' ฿</span>';
+    : '<span class="badge fee">' + min + ' แก้วส่งฟรี</span>';
   box.innerHTML = n >= min
-    ? '<div class="note info" style="background:var(--sand-soft);color:var(--brand-d)">ครบ ' +
-      min + ' แก้วแล้ว ออเดอร์นี้ส่งฟรี</div>'
-    : '<div class="note info">สถานที่นอกรายการ สั่งครบ ' + min +
-      ' แก้วในออเดอร์เดียวได้ส่งฟรี ตอนนี้มี ' + n + ' แก้ว</div>';
+    ? '<div class="note info" style="background:var(--sand-soft);color:var(--brand-d)">' +
+      'ครบ ' + min + ' แก้วแล้ว ออเดอร์นี้ส่งฟรี</div>'
+    : '<div class="note info">สถานที่นอกรายการ ครบ ' + min + ' แก้วในออเดอร์เดียวส่งฟรี · ' +
+      (n === 0 ? 'ยังไม่ได้เลือกเครื่องดื่ม' : 'ตอนนี้ ' + n + ' แก้ว อีก ' + (min - n) + ' แก้ว') +
+      ' · ถ้าไม่ครบคิดค่าส่ง ' + baht(CFG.delivery_fee) + ' ฿</div>';
 }
 
 /* ── menu rendering ───────────────────────── */
-function imgHtml(m, cls, fallbackSize) {
+/** ต่อ IMG_BASE ให้ค่าที่เป็นเส้นทางสัมพัทธ์ ปล่อยผ่านถ้าเป็น URL เต็มอยู่แล้ว */
+function imgSrc(v) {
+  const s = String(v || '').trim();
+  if (!s) return '';
+  if (/^https?:\/\//i.test(s)) return s;
+  const base = IMG_BASE.indexOf('PASTE') === 0 ? '' : IMG_BASE.replace(/\/*$/, '/');
+  return base + s.replace(/^\/+/, '');
+}
+
+function imgHtml(m, cls) {
   const ch = esc(m.name.charAt(0));
-  if (m.image_url) {
-    return '<div class="' + cls + '"><img src="' + esc(m.image_url) + '" alt="" loading="lazy" ' +
+  const src = imgSrc(m.image_url);
+  if (src) {
+    return '<div class="' + cls + '"><img src="' + esc(src) + '" alt="" loading="lazy" ' +
       'onerror="this.parentNode.textContent=\'' + ch + '\'"></div>';
   }
   return '<div class="' + cls + '">' + ch + '</div>';
@@ -500,10 +516,14 @@ function renderBest() {
 
   $('bestGrid').innerHTML = list.map(function (m, i) {
     const n = qtyOf(m.menu_id);
+    const src = imgSrc(m.image_url);
+    const ch = esc(m.name.charAt(0));
     return '<button type="button" class="gcard" data-m="' + m.menu_id + '">' +
-      '<span class="gimg">' + (m.image_url
-        ? '<img src="' + esc(m.image_url) + '" alt="" loading="lazy" onerror="this.remove()">'
-        : esc(m.name.charAt(0))) +
+      '<span class="gimg">' + (src
+        ? '<img src="' + esc(src) + '" alt="" loading="lazy" ' +
+          'onerror="this.parentNode.insertBefore(document.createTextNode(\'' + ch +
+          '\'),this);this.remove()">'
+        : ch) +
       '<span class="rank">อันดับ ' + (i + 1) + '</span></span>' +
       '<span class="gbody"><span><span class="n">' + esc(m.name) + '</span>' +
       '<span class="p">' + baht(m.price) + ' ฿</span></span>' +
@@ -735,6 +755,11 @@ function renderSummary() {
     html += '<div class="srow"><span class="muted">ค่าส่ง</span><span>' +
       (f === 0 && CFG.delivery_fee > 0
         ? '<span class="strike">' + baht(CFG.delivery_fee) + '</span>ฟรี' : baht(f)) + '</span></div>';
+    if (p && !p.free_delivery && f > 0) {
+      html += '<div class="note info" style="margin-top:6px">สั่งอีก ' +
+        (CFG.free_delivery_min_cups - cups()) + ' แก้วให้ครบ ' + CFG.free_delivery_min_cups +
+        ' แก้ว จะได้ส่งฟรีทันที</div>';
+    }
   }
   html += '<div class="srow tot"><span>รวมทั้งสิ้น</span><span>' + baht(subtotal() + f) + ' ฿</span></div>';
   $('sumBox').innerHTML = html;
@@ -896,7 +921,7 @@ async function start() {
   const im = new Image();
   im.onload = function () { $('logo').innerHTML = ''; $('logo').appendChild(im); };
   im.alt = '';
-  im.src = LOGO_URL;
+  im.src = imgSrc(LOGO_URL);
 
   if (LIFF_ID.indexOf('PASTE') === 0 || API_URL.indexOf('PASTE') === 0) {
     return fail('ยังไม่ได้ใส่ LIFF_ID หรือ API_URL ในไฟล์ index.html');
