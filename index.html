@@ -80,13 +80,14 @@ img{display:block}
 .round .s{font-size:12px;color:var(--ink-2)}
 .round .n{margin-left:auto;font-size:11px;color:var(--ink-3)}
 
-/* ── point rows ─────────────────────────── */
-.point{width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:8px;
-       border:1.5px solid var(--line-2);border-radius:11px;background:#fff}
-.point[aria-pressed="true"]{border-color:var(--brand);background:var(--brand-soft)}
-.point .t{font-size:15px;font-weight:500}
-.point .s{font-size:12px;color:var(--ink-2)}
-.badge{margin-left:auto;flex:none;font-size:11px;font-weight:600;padding:3px 9px;border-radius:9px}
+/* ── point dropdown ─────────────────────── */
+select{width:100%;font:inherit;font-size:15px;padding:12px 38px 12px 13px;color:var(--ink);
+  background:#fff;border:1.5px solid var(--line-2);border-radius:10px;
+  -webkit-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23707070' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center}
+select:focus{border-color:var(--brand);outline:none}
+.badge{display:inline-block;font-size:11px;font-weight:600;padding:3px 10px;border-radius:9px}
 .badge.free{background:var(--sand-soft);color:var(--brand-d)}
 .badge.fee{background:var(--grey-bg);color:var(--ink-2)}
 
@@ -233,7 +234,7 @@ textarea{resize:vertical;min-height:62px}
 
     <section class="block" id="secPoint">
       <div class="bh"><h2>สถานที่ส่ง</h2><span class="r" id="feeHint"></span></div>
-      <div id="pointList"></div>
+      <select id="pointSelect"></select>
       <div id="pointNote"></div>
     </section>
 
@@ -440,31 +441,41 @@ function renderRounds() {
 
 /* ── points ───────────────────────────────── */
 function renderPoints() {
-  $('feeHint').textContent = 'ค่าส่ง ' + baht(CFG.delivery_fee) + ' ฿';
-  $('pointList').innerHTML = CFG.drop_points.map(function (p) {
-    return '<button type="button" class="point" data-p="' + p.point_id + '" aria-pressed="' +
-      (p.point_id === POINT) + '"><span class="radio"></span>' +
-      '<span><span class="t">' + esc(p.name) + '</span>' +
-      (p.detail_hint ? '<br><span class="s">' + esc(p.detail_hint) + '</span>' : '') + '</span>' +
-      (p.free_delivery ? '<span class="badge free">ส่งฟรี</span>'
-                       : '<span class="badge fee">' + CFG.free_delivery_min_cups + ' แก้วส่งฟรี</span>') +
-      '</button>';
-  }).join('');
-  Array.prototype.forEach.call($('pointList').children, function (b) {
-    b.addEventListener('click', function () { POINT = b.dataset.p; renderPoints(); renderBar(); });
-  });
+  const sel = $('pointSelect');
+  sel.innerHTML = '<option value="">— เลือกสถานที่ส่ง —</option>' +
+    CFG.drop_points.map(function (p) {
+      return '<option value="' + p.point_id + '"' + (p.point_id === POINT ? ' selected' : '') +
+        '>' + esc(p.name) + (p.free_delivery ? ' · ส่งฟรี' : '') + '</option>';
+    }).join('');
+  sel.onchange = function () { POINT = sel.value; renderPointNote(); renderBar(); };
   renderPointNote();
 }
 
 function renderPointNote() {
   const p = pointObj();
   const box = $('pointNote');
-  if (!p || p.free_delivery) { box.innerHTML = ''; return; }
+  const hint = $('feeHint');
+
+  if (!p) {
+    hint.textContent = '';
+    box.innerHTML = '';
+    return;
+  }
+  if (p.free_delivery) {
+    hint.innerHTML = '<span class="badge free">ส่งฟรี</span>';
+    box.innerHTML = p.detail_hint
+      ? '<div class="note info">' + esc(p.detail_hint) + '</div>' : '';
+    return;
+  }
+
   const n = cups(), min = CFG.free_delivery_min_cups;
+  hint.innerHTML = n >= min
+    ? '<span class="badge free">ส่งฟรี</span>'
+    : '<span class="badge fee">ค่าส่ง ' + baht(CFG.delivery_fee) + ' ฿</span>';
   box.innerHTML = n >= min
     ? '<div class="note info" style="background:var(--sand-soft);color:var(--brand-d)">ครบ ' +
       min + ' แก้วแล้ว ออเดอร์นี้ส่งฟรี</div>'
-    : '<div class="note info">จุดนี้เป็นสถานที่นอกรายการ สั่งครบ ' + min +
+    : '<div class="note info">สถานที่นอกรายการ สั่งครบ ' + min +
       ' แก้วในออเดอร์เดียวได้ส่งฟรี ตอนนี้มี ' + n + ' แก้ว</div>';
 }
 
