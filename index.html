@@ -234,7 +234,11 @@ textarea{resize:vertical;min-height:62px}
 
     <section class="block" id="secPoint">
       <div class="bh"><h2>สถานที่ส่ง</h2><span class="r" id="feeHint"></span></div>
-      <select id="pointSelect"></select>
+      <select id="pointSelect" aria-label="เลือกสถานที่ส่ง"></select>
+      <label class="f" id="wrapDetail" style="margin:12px 0 0">
+        <span id="detailLabel">รายละเอียดเพิ่มเติม</span>
+        <input id="fDetail" type="text" placeholder="เช่น ตึกผู้ป่วยนอก ชั้น 2" maxlength="120">
+      </label>
       <div id="pointNote"></div>
     </section>
 
@@ -259,8 +263,6 @@ textarea{resize:vertical;min-height:62px}
   <main id="viewCheckout" class="hide">
     <section class="block">
       <div class="bh"><h2 id="hInfo">ข้อมูลผู้สั่ง</h2></div>
-      <label class="f" id="wrapDetail"><span id="detailLabel">รายละเอียดจุดส่ง</span>
-        <input id="fDetail" type="text" placeholder="ชั้น 2 ห้องการเงิน" maxlength="120"></label>
       <label class="f"><span>ชื่อเล่น</span>
         <input id="fName" type="text" placeholder="ชื่อที่ให้เรียก" maxlength="40"></label>
       <label class="f" style="margin-bottom:0"><span>เบอร์โทร</span>
@@ -297,6 +299,7 @@ textarea{resize:vertical;min-height:62px}
 
 <div class="bar hide" id="barFixed">
   <div class="bar-in">
+    <button class="cta ghost hide" id="barBack" type="button" style="padding:13px 16px">ย้อนกลับ</button>
     <div class="i"><div class="c1" id="barSub"></div><div class="c2" id="barTotal"></div></div>
     <button class="cta" id="barBtn" type="button"></button>
   </div>
@@ -389,7 +392,6 @@ function renderFulfill() {
     b.setAttribute('aria-pressed', String(b.dataset.v === FULFILL));
   });
   $('secPoint').classList.toggle('hide', FULFILL === 'pickup');
-  $('wrapDetail').classList.toggle('hide', FULFILL === 'pickup');
   $('hInfo').textContent = FULFILL === 'pickup' ? 'ข้อมูลผู้รับ' : 'ข้อมูลผู้สั่ง';
   $('phoneNote').textContent = FULFILL === 'pickup'
     ? 'ทางร้านจะทักไปแจ้งเมื่อเครื่องดื่มพร้อมให้มารับ'
@@ -458,31 +460,41 @@ function renderPoints() {
 
 function renderPointNote() {
   const p = pointObj();
-  const box = $('pointNote');
   const hint = $('feeHint');
+  const box = $('pointNote');
+  const lbl = $('detailLabel');
+  const inp = $('fDetail');
+  const wrap = $('wrapDetail');
 
   if (!p) {
-    hint.textContent = '';
-    box.innerHTML = '';
+    hint.innerHTML = '';
+    box.innerHTML = '<div class="note info">เลือกสถานที่ก่อน แล้วระบบจะบอกค่าส่งให้ทันที</div>';
+    wrap.classList.add('hide');
     return;
   }
+  wrap.classList.remove('hide');
+  inp.placeholder = p.detail_hint || 'เช่น ตึกผู้ป่วยนอก ชั้น 2';
+
   if (p.free_delivery) {
+    lbl.innerHTML = 'รายละเอียดเพิ่มเติม <span class="muted">(ไม่บังคับ)</span>';
     hint.innerHTML = '<span class="badge free">ส่งฟรี</span>';
-    box.innerHTML = p.detail_hint
-      ? '<div class="note info">' + esc(p.detail_hint) + '</div>' : '';
+    box.innerHTML = '<div class="note info">' + esc(p.name) + ' ส่งฟรี ไม่มีขั้นต่ำ</div>';
     return;
   }
 
-  const n = cups(), min = CFG.free_delivery_min_cups;
+  // จุดนอกรายการ — ต้องครบขั้นต่ำจึงจะส่งฟรี และต้องระบุจุดสังเกตเสมอ
+  const n = cups(), min = CFG.free_delivery_min_cups, left = min - n;
+  lbl.innerHTML = 'ระบุสถานที่และจุดสังเกต <span style="color:var(--brand)">*</span>';
   hint.innerHTML = n >= min
     ? '<span class="badge free">ส่งฟรี</span>'
     : '<span class="badge fee">' + min + ' แก้วส่งฟรี</span>';
   box.innerHTML = n >= min
     ? '<div class="note info" style="background:var(--sand-soft);color:var(--brand-d)">' +
       'ครบ ' + min + ' แก้วแล้ว ออเดอร์นี้ส่งฟรี</div>'
-    : '<div class="note info">สถานที่นอกรายการ ครบ ' + min + ' แก้วในออเดอร์เดียวส่งฟรี · ' +
-      (n === 0 ? 'ยังไม่ได้เลือกเครื่องดื่ม' : 'ตอนนี้ ' + n + ' แก้ว อีก ' + (min - n) + ' แก้ว') +
-      ' · ถ้าไม่ครบคิดค่าส่ง ' + baht(CFG.delivery_fee) + ' ฿</div>';
+    : '<div class="note info">สถานที่นอกรายการ คิดค่าส่ง ' + baht(CFG.delivery_fee) + ' ฿ · ' +
+      (n === 0
+        ? 'ถ้าสั่งครบ ' + min + ' แก้วในออเดอร์เดียว ส่งฟรี'
+        : 'ตอนนี้ ' + n + ' แก้ว อีก ' + left + ' แก้วได้ส่งฟรี') + '</div>';
 }
 
 /* ── menu rendering ───────────────────────── */
@@ -715,21 +727,42 @@ function renderBar() {
   $('barTotal').textContent = baht(subtotal() + f) + ' ฿';
 
   const btn = $('barBtn');
+  const back = $('barBack');
   if (VIEW === 'menu') {
+    back.classList.add('hide');
     btn.textContent = 'ถัดไป';
     btn.disabled = !ROUND || (FULFILL === 'delivery' && !POINT);
     btn.onclick = goCheckout;
   } else {
+    back.classList.remove('hide');
+    back.onclick = backToMenu;
     btn.textContent = 'ยืนยันสั่งซื้อ';
     btn.disabled = false;
     btn.onclick = submitOrder;
   }
 }
 
+function backToMenu() {
+  VIEW = 'menu';
+  $('viewCheckout').classList.add('hide');
+  $('viewMenu').classList.remove('hide');
+  $('tabs').classList.remove('hide');
+  window.scrollTo(0, 0);
+  renderPointNote(); renderBar();
+}
+
 /* ── checkout ─────────────────────────────── */
 function goCheckout() {
   if (!ROUND) { alert('กรุณาเลือกรอบส่ง'); return; }
-  if (FULFILL === 'delivery' && !POINT) { alert('กรุณาเลือกสถานที่ส่ง'); return; }
+  if (FULFILL === 'delivery') {
+    const p = pointObj();
+    if (!p) { alert('กรุณาเลือกสถานที่ส่ง'); return; }
+    if (!p.free_delivery && !$('fDetail').value.trim()) {
+      alert('สถานที่นอกรายการ กรุณาระบุสถานที่และจุดสังเกตด้วย');
+      $('fDetail').focus();
+      return;
+    }
+  }
   VIEW = 'checkout';
   $('viewMenu').classList.add('hide');
   $('tabs').classList.add('hide');
@@ -751,7 +784,11 @@ function renderSummary() {
     ' ' + ROUND.round_time + ' น.</span><span></span></div>';
   if (FULFILL === 'delivery') {
     const p = pointObj();
-    html += '<div class="srow"><span class="muted">สถานที่</span><span>' + esc(p ? p.name : '-') + '</span></div>';
+    const detail = $('fDetail').value.trim();
+    html += '<div class="srow"><span class="muted">สถานที่</span><span style="text-align:right">' +
+      esc(p ? p.name : '-') +
+      (detail ? '<br><span class="muted" style="font-size:12px">' + esc(detail) + '</span>' : '') +
+      '</span></div>';
     html += '<div class="srow"><span class="muted">ค่าส่ง</span><span>' +
       (f === 0 && CFG.delivery_fee > 0
         ? '<span class="strike">' + baht(CFG.delivery_fee) + '</span>ฟรี' : baht(f)) + '</span></div>';
@@ -790,7 +827,7 @@ function submitOrder() {
   if (!/^0\d{8,9}$/.test(phone.replace(/\D/g, ''))) return showErr('เบอร์โทรไม่ถูกต้อง ต้องเป็น 10 หลักขึ้นต้นด้วย 0');
   const p = pointObj();
   if (FULFILL === 'delivery' && p && !p.free_delivery && !detail) {
-    return showErr('กรุณาระบุจุดสังเกตของสถานที่ส่ง');
+    return showErr('สถานที่นอกรายการ กรุณากดย้อนกลับไประบุสถานที่และจุดสังเกต');
   }
 
   $('orderErr').classList.add('hide');
