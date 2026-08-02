@@ -197,8 +197,17 @@ textarea{resize:vertical;min-height:62px}
 .donebox{text-align:center;padding:26px 16px}
 .oid{font-size:12px;color:var(--ink-2);letter-spacing:.05em}
 .amt{font-size:34px;font-weight:700;color:var(--brand-d);margin:2px 0 6px}
-#qr{display:inline-block;padding:12px;background:#fff;border:1px solid var(--line-2);
-    border-radius:12px;margin:16px 0}
+#qrbox{display:inline-block;padding:12px;background:#fff;border:1px solid var(--line-2);
+  border-radius:12px;margin:14px 0 6px}
+#qrbox img{width:200px;height:200px}
+.howto{text-align:left;margin-top:18px;padding:14px;border-radius:12px;background:var(--grey-bg)}
+.hstep{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.5;
+  color:var(--ink-2);padding:7px 0}
+.hstep + .hstep{border-top:1px solid var(--line-2)}
+.hstep .hn{flex:none;width:21px;height:21px;border-radius:50%;background:var(--brand);color:#fff;
+  display:grid;place-items:center;font-size:12px;font-weight:700;margin-top:1px}
+.hstep b{color:var(--ink)}
+a.cta{text-decoration:none}
 </style>
 </head>
 <body>
@@ -326,6 +335,7 @@ const THAI_MON = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','
 var CFG = null, IDTOKEN = null, CART = [];
 var FULFILL = 'delivery', DAY = null, ROUND = null, POINT = '', PAY = 'promptpay';
 var VIEW = 'menu', CLIENT_ORDER_ID = null, CATS = [];
+var ORDER = null;
 
 /* ── helpers ──────────────────────────────── */
 function baht(n) { return Number(n).toLocaleString('th-TH'); }
@@ -618,6 +628,7 @@ function refreshCounts() {
 function openSheet(menu) {
   if (!menu) return;
   var qty = 1;
+  var itemNote = '';
   const picked = {};
 
   function draw() {
@@ -648,6 +659,10 @@ function openSheet(menu) {
       });
     });
 
+    html += '<div class="grp"><div class="lbl">หมายเหตุถึงร้าน<em>ไม่บังคับ</em></div>' +
+      '<input id="sNote" type="text" maxlength="80" placeholder="เช่น แยกน้ำแข็ง ไม่ใส่วิป" ' +
+      'value="' + esc(itemNote) + '"></div>';
+
     html += '<div class="qtyrow"><span class="muted" style="font-size:14px">จำนวน</span>' +
       '<span class="qtybox"><button type="button" class="qtybtn" data-q="-1">−</button>' +
       '<span style="font-size:18px;font-weight:600;min-width:22px;text-align:center">' + qty + '</span>' +
@@ -661,6 +676,7 @@ function openSheet(menu) {
 
     Array.prototype.forEach.call($('sheet').querySelectorAll('.opt'), function (el) {
       el.addEventListener('click', function () {
+        itemNote = $('sNote') ? $('sNote').value : itemNote;
         const gid = el.dataset.g, oid = el.dataset.o;
         const g = menu.groups.filter(function (x) { return x.group_id === gid; })[0];
         const cur = picked[gid] || [];
@@ -675,6 +691,7 @@ function openSheet(menu) {
     });
     Array.prototype.forEach.call($('sheet').querySelectorAll('.qtybtn'), function (el) {
       el.addEventListener('click', function () {
+        itemNote = $('sNote') ? $('sNote').value : itemNote;
         qty = Math.max(1, Math.min(50, qty + Number(el.dataset.q)));
         draw();
       });
@@ -695,11 +712,13 @@ function openSheet(menu) {
         });
       });
 
-      const key = menu.menu_id + '|' + ids.slice().sort().join(',');
+      const note = $('sNote') ? $('sNote').value.trim().slice(0, 80) : '';
+      const key = menu.menu_id + '|' + ids.slice().sort().join(',') + '|' + note;
       const same = CART.filter(function (l) { return l.key === key; })[0];
       if (same) same.qty = Math.min(50, same.qty + qty);
       else CART.push({ key: key, menuId: menu.menu_id, name: menu.name, unitPrice: menu.price,
-                       optionIds: ids, optionNames: names, optionPrice: price, qty: qty });
+                       optionIds: ids, optionNames: names, optionPrice: price,
+                       qty: qty, note: note });
 
       closeSheet(); refreshCounts();
     });
@@ -777,7 +796,9 @@ function renderSummary() {
   CART.forEach(function (l) {
     html += '<div class="srow"><span>' + esc(l.name) +
       (l.optionNames.length ? ' <span class="muted">(' + esc(l.optionNames.join(', ')) + ')</span>' : '') +
-      ' ×' + l.qty + '</span><span>' + baht((l.unitPrice + l.optionPrice) * l.qty) + '</span></div>';
+      ' ×' + l.qty +
+      (l.note ? '<br><span class="muted" style="font-size:12px">หมายเหตุ: ' + esc(l.note) + '</span>' : '') +
+      '</span><span>' + baht((l.unitPrice + l.optionPrice) * l.qty) + '</span></div>';
   });
   html += '<div class="srow"><span class="muted">' +
     (FULFILL === 'pickup' ? 'รับเองที่ร้าน ' : 'ส่ง ') + dayLabel(ROUND.date, ROUND.day_offset) +
@@ -809,9 +830,9 @@ function renderPay() {
     '<button type="button" class="chip" data-p="promptpay" aria-pressed="' +
     (PAY === 'promptpay') + '">โอนพร้อมเพย์</button>' +
     (codOk ? '<button type="button" class="chip" data-p="cod" aria-pressed="' +
-    (PAY === 'cod') + '">จ่ายเงินสด</button>' : '');
+    (PAY === 'cod') + '">เก็บเงินปลายทาง</button>' : '');
   $('codNote').innerHTML = codOk ? '' :
-    '<div class="note info">ออเดอร์แรกชำระผ่านพร้อมเพย์ก่อน ครั้งถัดไปเลือกจ่ายเงินสดได้</div>';
+    '<div class="note info">ออเดอร์แรกชำระผ่านพร้อมเพย์ก่อน ครั้งถัดไปเลือกเก็บเงินปลายทางได้</div>';
   Array.prototype.forEach.call($('payChips').children, function (el) {
     el.addEventListener('click', function () { PAY = el.dataset.p; renderPay(); });
   });
@@ -842,7 +863,9 @@ function submitOrder() {
     pointId: FULFILL === 'pickup' ? '' : POINT,
     addressDetail: FULFILL === 'pickup' ? '' : detail,
     nickname: name, phone: phone, paymentMethod: PAY, note: $('fNote').value.trim(),
-    items: CART.map(function (l) { return { menuId: l.menuId, qty: l.qty, optionIds: l.optionIds }; })
+    items: CART.map(function (l) {
+      return { menuId: l.menuId, qty: l.qty, optionIds: l.optionIds, note: l.note || '' };
+    })
   }).then(showDone).catch(function (e) {
     showErr(e.message);
     $('barBtn').disabled = false;
@@ -859,6 +882,7 @@ function showErr(msg) {
 
 function showDone(r) {
   VIEW = 'done';
+  ORDER = r;
   $('viewCheckout').classList.add('hide');
   $('viewDone').classList.remove('hide');
   $('barFixed').classList.add('hide');
@@ -872,26 +896,54 @@ function showDone(r) {
     (r.fulfillment === 'delivery' ? '<br>' + esc(r.point_name) : '') + '</div>';
 
   if (r.payment_method === 'promptpay' && r.promptpay_id) {
-    html += '<div id="qr"></div><div class="muted" style="font-size:13px">' +
-      'สแกนจ่ายด้วยแอปธนาคาร<br>แล้วส่งสลิปในแชทร้านเพื่อยืนยัน</div>';
+    html +=
+      '<div id="qrbox"><img id="qrImg" alt="QR พร้อมเพย์"></div>' +
+      '<div class="muted" style="font-size:12px">หรือกดค้างที่ QR เพื่อบันทึกภาพ</div>' +
+      '<a id="qrDl" class="cta wide" style="display:block;margin-top:14px" download>บันทึก QR ลงเครื่อง</a>' +
+      '<div class="howto">' +
+        '<div class="hstep"><span class="hn">1</span>' +
+          '<span>กดปุ่มบันทึก QR ด้านบน</span></div>' +
+        '<div class="hstep"><span class="hn">2</span>' +
+          '<span>เปิดแอปธนาคาร เลือกสแกน แล้วกด <b>รูปภาพ</b> เพื่อเลือก QR ที่บันทึกไว้ ' +
+          'ยอดเงินจะขึ้นให้เอง ' + baht(r.total) + ' บาท</span></div>' +
+        '<div class="hstep"><span class="hn">3</span>' +
+          '<span><b>ส่งสลิปกลับมาในแชทร้าน</b> เพื่อยืนยันการชำระเงิน ' +
+          'ถ้าไม่ส่งสลิป ทางร้านจะยังไม่เริ่มทำให้</span></div>' +
+      '</div>';
   } else {
-    html += '<div style="margin-top:16px;font-size:14px">ชำระเงินสดตอนรับของ</div>';
+    html += '<div style="margin-top:16px;font-size:15px">เก็บเงินปลายทาง — เตรียมเงินสดตอนรับของได้เลย</div>';
   }
-  html += '<button type="button" class="cta wide" id="closeApp" style="margin-top:22px">เสร็จสิ้น</button>';
+  html += '<button type="button" class="cta wide ghost" id="closeApp" style="margin-top:18px">ปิดหน้านี้</button>';
   $('doneBox').innerHTML = html;
 
-  if (r.payment_method === 'promptpay' && r.promptpay_id) {
-    try {
-      new QRCode($('qr'), { text: ppPayload(r.promptpay_id, r.total),
-        width: 190, height: 190, correctLevel: QRCode.CorrectLevel.M });
-    } catch (e) {
-      $('qr').innerHTML = '<div class="note err">สร้าง QR ไม่สำเร็จ กรุณาโอนไปที่ ' +
-        esc(r.promptpay_id) + ' แล้วส่งสลิปในแชท</div>';
-    }
-  }
+  if (r.payment_method === 'promptpay' && r.promptpay_id) buildQR(r);
+
   $('closeApp').addEventListener('click', function () {
     if (liff.isInClient()) liff.closeWindow(); else location.reload();
   });
+}
+
+/* สร้าง QR เป็นรูปภาพ เพื่อให้กดค้างบันทึกได้ และดาวน์โหลดได้ */
+function buildQR(r) {
+  const tmp = document.createElement('div');
+  try {
+    new QRCode(tmp, { text: ppPayload(r.promptpay_id, r.total),
+      width: 480, height: 480, correctLevel: QRCode.CorrectLevel.M });
+  } catch (e) {
+    $('qrbox').innerHTML = '<div class="note err">สร้าง QR ไม่สำเร็จ กรุณาโอนไปที่ ' +
+      esc(r.promptpay_id) + ' จำนวน ' + baht(r.total) + ' บาท แล้วส่งสลิปในแชทร้าน</div>';
+    return;
+  }
+  setTimeout(function () {
+    const cv = tmp.querySelector('canvas');
+    const im = tmp.querySelector('img');
+    const url = cv ? cv.toDataURL('image/png') : (im ? im.src : '');
+    if (!url) return;
+    $('qrImg').src = url;
+    const a = $('qrDl');
+    a.href = url;
+    a.setAttribute('download', r.order_id + '-promptpay.png');
+  }, 60);
 }
 
 /* ── PromptPay QR (EMVCo) ─────────────────── */
@@ -937,9 +989,9 @@ function setupReorder(orders) {
             });
           });
         });
-      CART.push({ key: m.menu_id + '|' + ids.slice().sort().join(','), menuId: m.menu_id,
+      CART.push({ key: m.menu_id + '|' + ids.slice().sort().join(',') + '|', menuId: m.menu_id,
         name: m.name, unitPrice: m.price, optionIds: ids, optionNames: names,
-        optionPrice: price, qty: i.qty });
+        optionPrice: price, qty: i.qty, note: '' });
     });
     refreshCounts();
   });
