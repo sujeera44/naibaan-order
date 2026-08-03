@@ -207,6 +207,9 @@ textarea{resize:vertical;min-height:62px}
 .hstep .hn{flex:none;width:21px;height:21px;border-radius:50%;background:var(--brand);color:#fff;
   display:grid;place-items:center;font-size:12px;font-weight:700;margin-top:1px}
 .hstep b{color:var(--ink)}
+.fdbar{margin-top:10px;padding:9px 12px;border-radius:9px;font-size:12.5px;
+  background:var(--grey-bg);color:var(--ink-2)}
+.fdbar.on{background:var(--sand-soft);color:var(--brand-d);font-weight:500}
 .promo{display:flex;gap:9px}
 .promo input{flex:1;min-width:0;text-transform:lowercase}
 .promo .cta{flex:none}
@@ -478,9 +481,7 @@ function renderPoints() {
   sel.innerHTML = '<option value="">— เลือกสถานที่ส่ง —</option>' +
     CFG.drop_points.map(function (p) {
       return '<option value="' + p.point_id + '"' + (p.point_id === POINT ? ' selected' : '') +
-        '>' + esc(p.name) +
-        (p.free_delivery ? ' · ส่งฟรี' : ' · ' + CFG.free_delivery_min_cups + ' แก้วส่งฟรี') +
-        '</option>';
+        '>' + esc(p.name) + '</option>';
     }).join('');
   sel.onchange = function () { POINT = sel.value; renderPointNote(); renderBar(); };
   renderPointNote();
@@ -496,7 +497,7 @@ function renderPointNote() {
 
   if (!p) {
     hint.innerHTML = '';
-    box.innerHTML = '<div class="note info">เลือกสถานที่ก่อน แล้วระบบจะบอกค่าส่งให้ทันที</div>';
+    box.innerHTML = '';
     wrap.classList.add('hide');
     return;
   }
@@ -506,23 +507,21 @@ function renderPointNote() {
   if (p.free_delivery) {
     lbl.innerHTML = 'รายละเอียดเพิ่มเติม <span class="muted">(ไม่บังคับ)</span>';
     hint.innerHTML = '<span class="badge free">ส่งฟรี</span>';
-    box.innerHTML = '<div class="note info">' + esc(p.name) + ' ส่งฟรี ไม่มีขั้นต่ำ</div>';
+    box.innerHTML = '';
     return;
   }
 
   // จุดนอกรายการ — ต้องครบขั้นต่ำจึงจะส่งฟรี และต้องระบุจุดสังเกตเสมอ
   const n = cups(), min = CFG.free_delivery_min_cups, left = min - n;
+  const ok = n >= min;
   lbl.innerHTML = 'ระบุสถานที่และจุดสังเกต <span style="color:var(--brand)">*</span>';
-  hint.innerHTML = n >= min
+  hint.innerHTML = ok
     ? '<span class="badge free">ส่งฟรี</span>'
-    : '<span class="badge fee">' + min + ' แก้วส่งฟรี</span>';
-  box.innerHTML = n >= min
-    ? '<div class="note info" style="background:var(--sand-soft);color:var(--brand-d)">' +
-      'ครบ ' + min + ' แก้วแล้ว ออเดอร์นี้ส่งฟรี</div>'
-    : '<div class="note info">สถานที่นอกรายการ คิดค่าส่ง ' + baht(CFG.delivery_fee) + ' ฿ · ' +
-      (n === 0
-        ? 'ถ้าสั่งครบ ' + min + ' แก้วในออเดอร์เดียว ส่งฟรี'
-        : 'ตอนนี้ ' + n + ' แก้ว อีก ' + left + ' แก้วได้ส่งฟรี') + '</div>';
+    : '<span class="badge fee">ค่าส่ง ' + baht(CFG.delivery_fee) + ' ฿</span>';
+  box.innerHTML = '<div class="fdbar' + (ok ? ' on' : '') + '">' +
+    (ok ? 'ครบ ' + min + ' แก้วแล้ว ออเดอร์นี้ส่งฟรี'
+        : (n === 0 ? 'สั่งครบ ' + min + ' แก้วในออเดอร์เดียว ส่งฟรี'
+                   : 'อีก ' + left + ' แก้วได้ส่งฟรี')) + '</div>';
 }
 
 /* ── menu rendering ───────────────────────── */
@@ -978,7 +977,7 @@ function showDone(r) {
           'ยอดเงินจะขึ้นให้เอง ' + baht(r.total) + ' บาท</span></div>' +
         '<div class="hstep"><span class="hn">3</span>' +
           '<span><b>ส่งสลิปกลับมาในแชทร้าน</b> เพื่อยืนยันการชำระเงิน ' +
-          'ถ้าไม่ส่งสลิป ทางร้านจะยังไม่เริ่มทำให้</span></div>' +
+          'หากยังไม่ได้ส่งสลิป ทางร้านจะยังไม่สามารถเริ่มทำออเดอร์ได้ค่ะ</span></div>' +
       '</div>';
   } else {
     html += '<div style="margin-top:16px;font-size:15px">เก็บเงินปลายทาง — เตรียมเงินสดตอนรับของได้เลย</div>';
