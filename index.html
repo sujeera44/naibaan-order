@@ -207,6 +207,11 @@ textarea{resize:vertical;min-height:62px}
 .hstep .hn{flex:none;width:21px;height:21px;border-radius:50%;background:var(--brand);color:#fff;
   display:grid;place-items:center;font-size:12px;font-weight:700;margin-top:1px}
 .hstep b{color:var(--ink)}
+.promo{display:flex;gap:9px}
+.promo input{flex:1;min-width:0;text-transform:lowercase}
+.promo .cta{flex:none}
+.promo.locked input{background:var(--sand-soft);color:var(--brand-d);font-weight:600;
+  border-color:var(--sand)}
 a.cta{text-decoration:none}
 </style>
 </head>
@@ -280,6 +285,16 @@ a.cta{text-decoration:none}
     </section>
 
     <section class="block">
+      <div class="bh"><h2>โค้ดส่วนลด</h2></div>
+      <div class="promo">
+        <input id="promoInput" type="text" placeholder="มีโค้ดส่วนลด? กรอกที่นี่" maxlength="30"
+               autocapitalize="off" autocomplete="off" spellcheck="false">
+        <button type="button" class="cta" id="promoBtn" style="padding:12px 18px">ใช้โค้ด</button>
+      </div>
+      <div id="promoMsg"></div>
+    </section>
+
+    <section class="block">
       <div class="bh"><h2>ชำระเงิน</h2></div>
       <div class="chips" id="payChips"></div>
       <div id="codNote"></div>
@@ -335,7 +350,7 @@ const THAI_MON = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','
 var CFG = null, IDTOKEN = null, CART = [];
 var FULFILL = 'delivery', DAY = null, ROUND = null, POINT = '', PAY = 'promptpay';
 var VIEW = 'menu', CLIENT_ORDER_ID = null, CATS = [];
-var ORDER = null;
+var ORDER = null, PROMO = null;
 
 /* ── helpers ──────────────────────────────── */
 function baht(n) { return Number(n).toLocaleString('th-TH'); }
@@ -383,6 +398,9 @@ function subtotal() {
 function qtyOf(id) {
   return CART.filter(function (l) { return l.menuId === id; })
              .reduce(function (s, l) { return s + l.qty; }, 0);
+}
+function discount() {
+  return PROMO ? Math.min(PROMO.discount, subtotal()) : 0;
 }
 function pointObj() {
   return CFG.drop_points.filter(function (p) { return p.point_id === POINT; })[0] || null;
@@ -740,10 +758,11 @@ function renderBar() {
   if (VIEW === 'done' || (VIEW === 'menu' && !n)) { bar.classList.add('hide'); return; }
   bar.classList.remove('hide');
 
-  const f = fee();
+  const f = fee(), d = discount();
   $('barSub').textContent = n + ' แก้ว · ' +
-    (FULFILL === 'pickup' ? 'มารับเอง' : (f ? 'ค่าส่ง ' + baht(f) + ' ฿' : 'ส่งฟรี'));
-  $('barTotal').textContent = baht(subtotal() + f) + ' ฿';
+    (FULFILL === 'pickup' ? 'มารับเอง' : (f ? 'ค่าส่ง ' + baht(f) + ' ฿' : 'ส่งฟรี')) +
+    (d ? ' · ลด ' + baht(d) + ' ฿' : '');
+  $('barTotal').textContent = baht(Math.max(0, subtotal() - d) + f) + ' ฿';
 
   const btn = $('barBtn');
   const back = $('barBack');
@@ -819,7 +838,12 @@ function renderSummary() {
         ' แก้ว จะได้ส่งฟรีทันที</div>';
     }
   }
-  html += '<div class="srow tot"><span>รวมทั้งสิ้น</span><span>' + baht(subtotal() + f) + ' ฿</span></div>';
+  if (PROMO) {
+    html += '<div class="srow"><span class="muted">ส่วนลด ' + esc(PROMO.code) +
+      '</span><span style="color:var(--brand)">−' + baht(PROMO.discount) + '</span></div>';
+  }
+  html += '<div class="srow tot"><span>รวมทั้งสิ้น</span><span>' +
+    baht(Math.max(0, subtotal() - discount()) + f) + ' ฿</span></div>';
   $('sumBox').innerHTML = html;
 }
 
@@ -836,6 +860,49 @@ function renderPay() {
   Array.prototype.forEach.call($('payChips').children, function (el) {
     el.addEventListener('click', function () { PAY = el.dataset.p; renderPay(); });
   });
+}
+
+/* ── promo code ───────────────────────────── */
+function applyPromo() {
+  if (PROMO) { clearPromo(); return; }
+
+  const code = $('promoInput').value.trim();
+  if (!code) { $('promoMsg').innerHTML = '<div class="note info">กรุณากรอกโค้ดส่วนลด</div>'; return; }
+
+  const btn = $('promoBtn');
+  btn.disabled = true;
+  btn.textContent = 'กำลังตรวจ…';
+  $('promoMsg').innerHTML = '';
+
+  api({ action: 'checkPromo', idToken: IDTOKEN, code: code,
+        cups: cups(), subtotal: subtotal() })
+    .then(function (r) {
+      PROMO = r;
+      $('promoInput').value = r.code;
+      $('promoInput').readOnly = true;
+      document.querySelector('.promo').classList.add('locked');
+      btn.textContent = 'ยกเลิก';
+      $('promoMsg').innerHTML = '<div class="note info" ' +
+        'style="background:var(--sand-soft);color:var(--brand-d)">' +
+        esc(r.name) + ' — ลด ' + baht(r.discount) + ' บาท</div>';
+      renderSummary(); renderBar();
+    })
+    .catch(function (e) {
+      PROMO = null;
+      $('promoMsg').innerHTML = '<div class="note err">' + esc(e.message) + '</div>';
+      renderSummary(); renderBar();
+    })
+    .then(function () { btn.disabled = false; });
+}
+
+function clearPromo() {
+  PROMO = null;
+  $('promoInput').value = '';
+  $('promoInput').readOnly = false;
+  document.querySelector('.promo').classList.remove('locked');
+  $('promoBtn').textContent = 'ใช้โค้ด';
+  $('promoMsg').innerHTML = '';
+  renderSummary(); renderBar();
 }
 
 /* ── submit ───────────────────────────────── */
@@ -863,6 +930,7 @@ function submitOrder() {
     pointId: FULFILL === 'pickup' ? '' : POINT,
     addressDetail: FULFILL === 'pickup' ? '' : detail,
     nickname: name, phone: phone, paymentMethod: PAY, note: $('fNote').value.trim(),
+    promoCode: PROMO ? PROMO.code : '',
     items: CART.map(function (l) {
       return { menuId: l.menuId, qty: l.qty, optionIds: l.optionIds, note: l.note || '' };
     })
@@ -890,6 +958,8 @@ function showDone(r) {
 
   var html = '<div class="oid">' + esc(r.order_id) + '</div>' +
     '<div class="amt">' + baht(r.total) + ' ฿</div>' +
+    (r.discount ? '<div style="font-size:13px;color:var(--brand);margin:-4px 0 6px">' +
+      'ใช้โค้ด ' + esc(r.promo_code) + ' ลด ' + baht(r.discount) + ' บาทแล้ว</div>' : '') +
     '<div class="muted" style="font-size:14px">' +
     (r.fulfillment === 'pickup' ? 'รับเองที่ร้าน ' : 'ส่ง ') +
     dayLabel(r.delivery_date, null) + ' ' + r.round_time + ' น.' +
@@ -1044,6 +1114,8 @@ async function start() {
       renderFulfill(); renderBar();
     });
   });
+
+  $('promoBtn').addEventListener('click', applyPromo);
 
   renderFulfill(); renderDays(); renderPoints();
   renderBest(); renderCats(); renderTabs(); renderPay(); renderBar();
