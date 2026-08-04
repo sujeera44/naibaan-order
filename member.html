@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ระบบสมาชิก — NaiBaaN Cafe'</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --brand:#A93F3F; --brand-d:#8C3232; --brand-soft:#FBF0EF;
+  --sand:#D2AF91; --sand-soft:#FAF3EC;
+  --bg:#FFFFFF; --grey-bg:#F6F6F6; --line:#EEEEEE; --line-2:#E0E0E0;
+  --ink:#1F1F1F; --ink-2:#707070; --ink-3:#A6A6A6;
+  --ok:#4E7A4B; --ok-soft:#EDF3EC;
+  --font:'IBM Plex Sans Thai',-apple-system,BlinkMacSystemFont,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);
+     font-size:15px;line-height:1.55;padding-bottom:40px}
+h1,h2{margin:0;font-weight:600;letter-spacing:-0.01em}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.hide{display:none !important}
+.wrap{max-width:600px;margin:0 auto}
+
+/* ── points card ────────────────────────── */
+.hero{padding:20px 16px;background:linear-gradient(150deg,var(--brand) 0%,var(--brand-d) 100%);
+      color:#fff}
+.hero .who{font-size:13px;opacity:.85}
+.hero .pt{display:flex;align-items:baseline;gap:8px;margin-top:2px}
+.hero .pt b{font-size:40px;font-weight:700;line-height:1.1}
+.hero .pt span{font-size:15px;opacity:.9}
+.hero .sub{font-size:12px;opacity:.8;margin-top:2px}
+
+/* ── stat strip ─────────────────────────── */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:7px solid var(--grey-bg)}
+.stat{padding:14px 8px;text-align:center;border-right:1px solid var(--line)}
+.stat:last-child{border-right:0}
+.stat b{display:block;font-size:19px;font-weight:700}
+.stat span{display:block;font-size:11.5px;color:var(--ink-2);margin-top:1px}
+
+/* ── blocks ─────────────────────────────── */
+.block{padding:18px 16px;border-bottom:7px solid var(--grey-bg)}
+.block:last-of-type{border-bottom:0}
+.bh{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:12px}
+.bh h2{font-size:17px}
+.bh .r{font-size:12px;color:var(--ink-2)}
+
+/* ── favorites ──────────────────────────── */
+.fav{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--line)}
+.fav:last-child{border-bottom:0}
+.medal{flex:none;width:26px;height:26px;border-radius:50%;background:var(--sand-soft);
+  color:var(--brand-d);display:grid;place-items:center;font-size:12px;font-weight:700}
+.fav .n{flex:1;font-size:14.5px}
+.fav .q{font-size:13px;color:var(--ink-2)}
+
+/* ── order card ─────────────────────────── */
+.oc{border:1px solid var(--line-2);border-radius:12px;padding:13px 14px;margin-bottom:11px}
+.oc.cancelled{opacity:.55}
+.oc .top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.oc .when{font-size:14.5px;font-weight:600}
+.oc .where{font-size:12px;color:var(--ink-2);margin-top:1px}
+.oc .amt{font-size:16px;font-weight:700;text-align:right;white-space:nowrap}
+.oc .earn{font-size:11px;color:var(--brand);text-align:right}
+.oc .lines{margin-top:9px;padding-top:9px;border-top:1px dashed var(--line-2)}
+.oc .li{display:flex;gap:8px;font-size:13px;padding:2px 0}
+.oc .li .q{flex:none;color:var(--ink-2);min-width:24px}
+.oc .li .o{font-size:11.5px;color:var(--ink-3)}
+.oc .foot{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.tag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:9px}
+.tag.wait{background:var(--brand-soft);color:var(--brand-d)}
+.tag.paid{background:var(--ok-soft);color:var(--ok)}
+.tag.cod{background:var(--grey-bg);color:var(--ink-2)}
+.tag.cancel{background:var(--grey-bg);color:var(--ink-2)}
+.tag.promo{background:var(--sand-soft);color:var(--brand-d)}
+.cancelbtn{margin-left:auto;font-size:12px;color:var(--ink-2);
+  border:1px solid var(--line-2);border-radius:8px;padding:5px 12px}
+
+/* ── misc ───────────────────────────────── */
+.note{padding:12px 14px;border-radius:10px;font-size:13px;background:var(--grey-bg);color:var(--ink-2)}
+.note.err{background:var(--brand-soft);color:var(--brand-d)}
+.center{text-align:center;padding:60px 20px;color:var(--ink-2);font-size:14px}
+.cta{display:block;width:100%;padding:13px;border-radius:10px;background:var(--brand);
+  color:#fff;font-size:15px;font-weight:600;text-align:center;text-decoration:none}
+.skel{height:13px;border-radius:6px;background:var(--grey-bg);margin:7px 0}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="who" id="who">กำลังโหลด…</div>
+    <div class="pt"><b id="pts">–</b><span>แต้ม</span></div>
+    <div class="sub" id="sub"></div>
+  </div>
+
+  <div class="stats" id="stats">
+    <div class="stat"><b class="skel"></b><span>ออเดอร์</span></div>
+    <div class="stat"><b class="skel"></b><span>แก้วสะสม</span></div>
+    <div class="stat"><b class="skel"></b><span>ยอดรวม</span></div>
+  </div>
+
+  <div id="err" class="hide" style="padding:16px"></div>
+
+  <section class="block hide" id="secFav">
+    <div class="bh"><h2>เมนูที่คุณสั่งบ่อย</h2></div>
+    <div id="favList"></div>
+  </section>
+
+  <section class="block" id="secHist">
+    <div class="bh"><h2>ประวัติการสั่ง</h2><span class="r" id="histCount"></span></div>
+    <div id="histList"><div class="center">กำลังโหลด…</div></div>
+  </section>
+
+  <div style="padding:0 16px">
+    <a class="cta" id="orderBtn" href="#">สั่งเครื่องดื่ม</a>
+  </div>
+</div>
+
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script>
+/* ═══════════════════════════════════════════════
+   แก้สองบรรทัดนี้ก่อนใช้งาน
+   ═══════════════════════════════════════════════ */
+const LIFF_ID       = "PASTE_MEMBER_LIFF_ID_HERE";   // LIFF ของหน้านี้ (คนละตัวกับหน้าสั่งซื้อ)
+const API_URL       = "PASTE_YOUR_WEB_APP_URL_HERE";
+const ORDER_LIFF_ID = "2010900757-sQF00VQx";         // LIFF ของหน้าสั่งเครื่องดื่ม
+/* ═══════════════════════════════════════════════ */
+
+const $ = function (id) { return document.getElementById(id); };
+const THAI_DAY = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+const THAI_MON = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+var IDTOKEN = null, DATA = null;
+
+function baht(n) { return Number(n).toLocaleString('th-TH'); }
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+  });
+}
+/** 2026-08-04 → 4 ส.ค. 69 */
+function thDate(ymd) {
+  const p = String(ymd).split('-');
+  if (p.length !== 3) return String(ymd || '');
+  return Number(p[2]) + ' ' + THAI_MON[Number(p[1]) - 1] + ' ' + String(Number(p[0]) + 543).slice(-2);
+}
+function thDay(ymd) {
+  const p = String(ymd).split('-');
+  if (p.length !== 3) return '';
+  return THAI_DAY[new Date(+p[0], +p[1] - 1, +p[2]).getDay()];
+}
+
+function api(params) {
+  const q = Object.keys(params).map(function (k) {
+    return k + '=' + encodeURIComponent(params[k]);
+  }).join('&');
+  return fetch(API_URL + '?' + q).then(readJson);
+}
+function apiPost(body) {
+  return fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(body)
+  }).then(readJson);
+}
+function readJson(res) {
+  return res.text().then(function (t) {
+    var j;
+    try { j = JSON.parse(t); }
+    catch (e) { throw new Error('เซิร์ฟเวอร์ตอบกลับผิดรูปแบบ'); }
+    if (!j.ok) throw new Error(j.error || 'เกิดข้อผิดพลาด');
+    return j.data;
+  });
+}
+
+/* ── render ───────────────────────────────── */
+function render(d) {
+  DATA = d;
+
+  $('who').textContent = d.nickname ? 'สวัสดีคุณ' + d.nickname : 'ยินดีต้อนรับ';
+  $('pts').textContent = baht(d.points);
+  $('sub').textContent = d.member_since
+    ? 'เป็นสมาชิกตั้งแต่ ' + thDate(d.member_since) +
+      (d.points_per_cup ? ' · ทุก 1 แก้วได้ ' + d.points_per_cup + ' แต้ม' : '')
+    : (d.points_per_cup ? 'ทุก 1 แก้วได้ ' + d.points_per_cup + ' แต้ม' : '');
+
+  $('stats').innerHTML =
+    '<div class="stat"><b>' + baht(d.total_orders) + '</b><span>ออเดอร์</span></div>' +
+    '<div class="stat"><b>' + baht(d.total_cups) + '</b><span>แก้วสะสม</span></div>' +
+    '<div class="stat"><b>' + baht(d.total_spent) + '</b><span>ยอดรวม (฿)</span></div>';
+
+  if (d.favorites && d.favorites.length) {
+    $('secFav').classList.remove('hide');
+    $('favList').innerHTML = d.favorites.map(function (f, i) {
+      return '<div class="fav"><span class="medal">' + (i + 1) + '</span>' +
+        '<span class="n">' + esc(f.name) + '</span>' +
+        '<span class="q">' + f.qty + ' แก้ว</span></div>';
+    }).join('');
+  }
+
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = DATA.orders || [];
+  $('histCount').textContent = list.length ? 'ล่าสุด ' + list.length + ' รายการ' : '';
+
+  if (!list.length) {
+    $('histList').innerHTML =
+      '<div class="note">ยังไม่มีประวัติการสั่ง กดปุ่มด้านล่างเพื่อสั่งครั้งแรกได้เลย</div>';
+    return;
+  }
+
+  $('histList').innerHTML = list.map(function (o) {
+    const cancelled = o.order_status === 'cancelled';
+
+    var tags = '';
+    if (cancelled) tags += '<span class="tag cancel">ยกเลิกแล้ว</span>';
+    else if (o.payment_status === 'paid') tags += '<span class="tag paid">ชำระแล้ว</span>';
+    else if (o.payment_method === 'cod') tags += '<span class="tag cod">เก็บเงินปลายทาง</span>';
+    else tags += '<span class="tag wait">รอสลิป</span>';
+    if (o.promo_code) tags += '<span class="tag promo">' + esc(o.promo_code) + ' −' + baht(o.discount) + '</span>';
+
+    const lines = o.items.map(function (i) {
+      return '<div class="li"><span class="q">' + i.qty + 'x</span><span>' + esc(i.name) +
+        (i.options_text ? ' <span class="o">' + esc(i.options_text) + '</span>' : '') +
+        (i.item_note ? '<br><span class="o">หมายเหตุ: ' + esc(i.item_note) + '</span>' : '') +
+        '</span></div>';
+    }).join('');
+
+    return '<div class="oc' + (cancelled ? ' cancelled' : '') + '">' +
+      '<div class="top"><div>' +
+        '<div class="when">' + thDay(o.delivery_date) + ' ' + thDate(o.delivery_date) +
+        ' · ' + o.round_time + ' น.</div>' +
+        '<div class="where">' +
+          (o.fulfillment === 'pickup' ? 'รับเองที่ร้าน' : esc(o.point_name)) +
+          ' · ' + o.cups + ' แก้ว</div>' +
+      '</div><div>' +
+        '<div class="amt">' + baht(o.total) + ' ฿</div>' +
+        (o.points_earned ? '<div class="earn">+' + o.points_earned + ' แต้ม</div>' : '') +
+      '</div></div>' +
+      '<div class="lines">' + lines + '</div>' +
+      '<div class="foot">' + tags +
+        (o.can_cancel ? '<button type="button" class="cancelbtn" data-o="' +
+          esc(o.order_id) + '">ยกเลิก</button>' : '') +
+      '</div></div>';
+  }).join('');
+
+  Array.prototype.forEach.call($('histList').querySelectorAll('.cancelbtn'), function (b) {
+    b.addEventListener('click', function () { cancelOrder(b.dataset.o, b); });
+  });
+}
+
+function cancelOrder(orderId, btn) {
+  if (!confirm('ยกเลิกออเดอร์ ' + orderId + ' ใช่หรือไม่')) return;
+  btn.disabled = true;
+  btn.textContent = 'กำลังยกเลิก…';
+
+  apiPost({ action: 'cancelOrder', idToken: IDTOKEN, orderId: orderId })
+    .then(function () {
+      DATA.orders.forEach(function (o) {
+        if (o.order_id === orderId) {
+          o.order_status = 'cancelled';
+          o.can_cancel = false;
+          o.points_earned = 0;
+        }
+      });
+      renderHistory();
+    })
+    .catch(function (e) {
+      alert(e.message);
+      btn.disabled = false;
+      btn.textContent = 'ยกเลิก';
+    });
+}
+
+/* ── start ────────────────────────────────── */
+function fail(msg) {
+  $('who').textContent = '';
+  $('pts').textContent = '–';
+  $('histList').innerHTML = '';
+  $('err').classList.remove('hide');
+  $('err').innerHTML = '<div class="note err">' + esc(msg) + '</div>';
+}
+
+async function start() {
+  $('orderBtn').href = 'https://liff.line.me/' + ORDER_LIFF_ID;
+
+  if (LIFF_ID.indexOf('PASTE') === 0 || API_URL.indexOf('PASTE') === 0) {
+    return fail('ยังไม่ได้ใส่ LIFF_ID หรือ API_URL ในไฟล์ member.html');
+  }
+  try { await liff.init({ liffId: LIFF_ID }); }
+  catch (e) { return fail('เชื่อมต่อ LIFF ไม่สำเร็จ: ' + e.message); }
+  if (!liff.isLoggedIn()) { liff.login(); return; }
+
+  IDTOKEN = liff.getIDToken();
+  if (!IDTOKEN) return fail('ไม่ได้รับ ID token — ตรวจว่าติ๊ก scope openid ในหน้าตั้งค่า LIFF แล้ว');
+
+  try { render(await api({ action: 'member', idToken: IDTOKEN })); }
+  catch (e) { fail(e.message); }
+}
+
+start();
+</script>
+</body>
+</html>
