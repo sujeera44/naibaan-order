@@ -159,6 +159,20 @@ select:focus{border-color:var(--brand);outline:none}
 .qtybox{display:flex;align-items:center;gap:18px}
 .qtybtn{width:34px;height:34px;border:1.5px solid var(--line-2);border-radius:50%;
         font-size:19px;line-height:1;color:var(--brand);text-align:center}
+.qtybtn.danger{border-color:var(--brand);background:var(--brand-soft)}
+.cta.danger{background:#fff;border:1.5px solid var(--brand);color:var(--brand)}
+
+/* ── รายการในหน้าสรุป (แก้ไขได้) ─────────── */
+.cline{display:flex;align-items:center;gap:10px;padding:11px 0;
+  border-bottom:1px solid var(--line)}
+.cline .ci{flex:1;min-width:0}
+.cline .cn{font-size:14.5px;font-weight:500}
+.cline .co{font-size:11.5px;color:var(--ink-2);margin-top:1px}
+.cline .cq{flex:none;display:flex;align-items:center;gap:9px}
+.cline .cnum{font-size:14px;font-weight:600;min-width:16px;text-align:center}
+.qbtn{width:27px;height:27px;border:1.5px solid var(--line-2);border-radius:50%;
+  font-size:15px;line-height:1;color:var(--brand);text-align:center;padding:0}
+.cline .cp{flex:none;min-width:52px;text-align:right;font-size:14.5px;font-weight:600}
 
 /* ── forms ──────────────────────────────── */
 label.f{display:block;margin-bottom:14px}
@@ -631,7 +645,10 @@ function renderCats() {
 function bindItems(root, sel) {
   Array.prototype.forEach.call(root.querySelectorAll(sel), function (b) {
     b.addEventListener('click', function () {
-      openSheet(CFG.menu.filter(function (x) { return x.menu_id === b.dataset.m; })[0]);
+      const menu = CFG.menu.filter(function (x) { return x.menu_id === b.dataset.m; })[0];
+      const inCart = CART.filter(function (l) { return l.menuId === b.dataset.m; });
+      // มีในตะกร้าแบบเดียว = เปิดแก้ไขของเดิม จะได้ลดจำนวนหรือลบออกได้
+      openSheet(menu, inCart.length === 1 ? inCart[0] : null);
     });
   });
 }
@@ -675,11 +692,27 @@ function refreshCounts() {
 }
 
 /* ── option sheet ─────────────────────────── */
-function openSheet(menu) {
+/**
+ * เปิดแผ่นเลือกตัวเลือก
+ * ถ้าส่ง line มาด้วย = แก้ไขรายการเดิมในตะกร้า (ลดจำนวนเหลือ 0 แล้วลบออกได้)
+ */
+function openSheet(menu, line) {
   if (!menu) return;
-  var qty = 1;
-  var itemNote = '';
+  const editing = !!line;
+  var qty = editing ? line.qty : 1;
+  var itemNote = editing ? (line.note || '') : '';
   const picked = {};
+
+  if (editing) {
+    // เติมตัวเลือกเดิมกลับเข้าไป เพื่อให้แก้ได้จากของที่เคยเลือก
+    menu.groups.forEach(function (g) {
+      g.options.forEach(function (o) {
+        if (line.optionIds.indexOf(o.option_id) >= 0) {
+          picked[g.group_id] = (picked[g.group_id] || []).concat([o.option_id]);
+        }
+      });
+    });
+  }
 
   function draw() {
     var html = '<div class="shead"><h3>' + esc(menu.name) + '</h3>' +
@@ -713,14 +746,23 @@ function openSheet(menu) {
       '<input id="sNote" type="text" maxlength="80" placeholder="เช่น แยกน้ำแข็ง ไม่ใส่วิป" ' +
       'value="' + esc(itemNote) + '"></div>';
 
+    const zero = qty <= 0;
     html += '<div class="qtyrow"><span class="muted" style="font-size:14px">จำนวน</span>' +
-      '<span class="qtybox"><button type="button" class="qtybtn" data-q="-1">−</button>' +
-      '<span style="font-size:18px;font-weight:600;min-width:22px;text-align:center">' + qty + '</span>' +
+      '<span class="qtybox">' +
+      '<button type="button" class="qtybtn' + (zero ? ' danger' : '') + '" data-q="-1">' +
+      (qty === 1 ? '🗑' : '−') + '</button>' +
+      '<span style="font-size:18px;font-weight:600;min-width:22px;text-align:center' +
+      (zero ? ';color:var(--ink-3)' : '') + '">' + qty + '</span>' +
       '<button type="button" class="qtybtn" data-q="1">+</button></span></div>' +
       '<div style="display:flex;gap:10px;padding-bottom:6px">' +
       '<button type="button" class="cta ghost" id="sClose">ปิด</button>' +
-      '<button type="button" class="cta wide" id="sAdd">เพิ่มลงตะกร้า ' +
-      baht((menu.price + extra) * qty) + ' ฿</button></div>';
+      (zero
+        ? '<button type="button" class="cta wide danger" id="sAdd">' +
+          (editing ? 'ลบออกจากตะกร้า' : 'ไม่เพิ่มลงตะกร้า') + '</button>'
+        : '<button type="button" class="cta wide" id="sAdd">' +
+          (editing ? 'บันทึกการแก้ไข ' : 'เพิ่มลงตะกร้า ') +
+          baht((menu.price + extra) * qty) + ' ฿</button>') +
+      '</div>';
 
     $('sheet').innerHTML = html;
 
@@ -742,12 +784,19 @@ function openSheet(menu) {
     Array.prototype.forEach.call($('sheet').querySelectorAll('.qtybtn'), function (el) {
       el.addEventListener('click', function () {
         itemNote = $('sNote') ? $('sNote').value : itemNote;
-        qty = Math.max(1, Math.min(50, qty + Number(el.dataset.q)));
+        qty = Math.max(0, Math.min(50, qty + Number(el.dataset.q)));
         draw();
       });
     });
     $('sClose').addEventListener('click', closeSheet);
     $('sAdd').addEventListener('click', function () {
+      // จำนวน 0 = ลบรายการเดิม หรือไม่เพิ่มอะไรเลย
+      if (qty <= 0) {
+        if (editing) CART = CART.filter(function (l) { return l !== line; });
+        closeSheet(); refreshCounts();
+        return;
+      }
+
       const miss = menu.groups.filter(function (g) {
         return g.is_required && !(picked[g.group_id] || []).length;
       });
@@ -764,11 +813,22 @@ function openSheet(menu) {
 
       const note = $('sNote') ? $('sNote').value.trim().slice(0, 80) : '';
       const key = menu.menu_id + '|' + ids.slice().sort().join(',') + '|' + note;
-      const same = CART.filter(function (l) { return l.key === key; })[0];
-      if (same) same.qty = Math.min(50, same.qty + qty);
-      else CART.push({ key: key, menuId: menu.menu_id, name: menu.name, unitPrice: menu.price,
-                       optionIds: ids, optionNames: names, optionPrice: price,
-                       qty: qty, note: note });
+
+      if (editing) {
+        // แก้ไขของเดิม — ถ้าแก้จนไปซ้ำกับรายการอื่น ให้ยุบรวมกัน
+        CART = CART.filter(function (l) { return l !== line; });
+        const dup = CART.filter(function (l) { return l.key === key; })[0];
+        if (dup) dup.qty = Math.min(50, dup.qty + qty);
+        else CART.push({ key: key, menuId: menu.menu_id, name: menu.name, unitPrice: menu.price,
+                         optionIds: ids, optionNames: names, optionPrice: price,
+                         qty: qty, note: note });
+      } else {
+        const same = CART.filter(function (l) { return l.key === key; })[0];
+        if (same) same.qty = Math.min(50, same.qty + qty);
+        else CART.push({ key: key, menuId: menu.menu_id, name: menu.name, unitPrice: menu.price,
+                         optionIds: ids, optionNames: names, optionPrice: price,
+                         qty: qty, note: note });
+      }
 
       closeSheet(); refreshCounts();
     });
@@ -844,12 +904,22 @@ function goCheckout() {
 function renderSummary() {
   const f = fee();
   var html = '';
-  CART.forEach(function (l) {
-    html += '<div class="srow"><span>' + esc(l.name) +
-      (l.optionNames.length ? ' <span class="muted">(' + esc(l.optionNames.join(', ')) + ')</span>' : '') +
-      ' ×' + l.qty +
-      (l.note ? '<br><span class="muted" style="font-size:12px">หมายเหตุ: ' + esc(l.note) + '</span>' : '') +
-      '</span><span>' + baht((l.unitPrice + l.optionPrice) * l.qty) + '</span></div>';
+  CART.forEach(function (l, idx) {
+    html += '<div class="cline">' +
+      '<div class="ci">' +
+        '<div class="cn">' + esc(l.name) + '</div>' +
+        (l.optionNames.length
+          ? '<div class="co">' + esc(l.optionNames.join(', ')) + '</div>' : '') +
+        (l.note ? '<div class="co">หมายเหตุ: ' + esc(l.note) + '</div>' : '') +
+      '</div>' +
+      '<div class="cq">' +
+        '<button type="button" class="qbtn" data-i="' + idx + '" data-d="-1">' +
+          (l.qty === 1 ? '🗑' : '−') + '</button>' +
+        '<span class="cnum">' + l.qty + '</span>' +
+        '<button type="button" class="qbtn" data-i="' + idx + '" data-d="1">+</button>' +
+      '</div>' +
+      '<div class="cp">' + baht((l.unitPrice + l.optionPrice) * l.qty) + '</div>' +
+      '</div>';
   });
   html += '<div class="srow"><span class="muted">' +
     (FULFILL === 'pickup' ? 'รับเองที่ร้าน ' : 'ส่ง ') + dayLabel(ROUND.date, ROUND.day_offset) +
@@ -881,6 +951,34 @@ function renderSummary() {
   html += '<div class="srow tot"><span>รวมทั้งสิ้น</span><span>' +
     baht(Math.max(0, subtotal() - discount() - ptsDiscount()) + f) + ' ฿</span></div>';
   $('sumBox').innerHTML = html;
+
+  Array.prototype.forEach.call($('sumBox').querySelectorAll('.qbtn'), function (b) {
+    b.addEventListener('click', function () {
+      changeLine(Number(b.dataset.i), Number(b.dataset.d));
+    });
+  });
+}
+
+/** เพิ่ม/ลด/ลบรายการจากหน้าสรุป */
+function changeLine(idx, delta) {
+  const l = CART[idx];
+  if (!l) return;
+
+  if (delta < 0 && l.qty === 1) {
+    if (!confirm('ลบ ' + l.name + ' ออกจากตะกร้าใช่หรือไม่')) return;
+    CART.splice(idx, 1);
+  } else {
+    l.qty = Math.max(1, Math.min(50, l.qty + delta));
+  }
+
+  if (!CART.length) {
+    // ตะกร้าว่างแล้ว พากลับไปหน้าเมนู
+    PTS = 0;
+    backToMenu();
+    renderMenu(); renderBest();
+    return;
+  }
+  renderRedeem(); renderSummary(); renderBar();
 }
 
 /* ── points redemption ────────────────────── */
