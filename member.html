@@ -210,9 +210,13 @@ function render(d) {
   $('who').textContent = d.nickname ? 'คุณ' + d.nickname : 'ยินดีต้อนรับ';
   $('since').textContent = d.member_since ? 'สมาชิกตั้งแต่ ' + thDate(d.member_since) : 'สมาชิกใหม่';
   $('pts').textContent = baht(d.points);
-  $('rate').textContent = d.points_per_cup
-    ? 'ทุก 1 แก้วที่สั่ง รับ ' + d.points_per_cup + ' แต้ม'
-    : 'ขอบคุณที่อุดหนุนเสมอมา';
+  var rate = d.points_per_cup ? 'ทุก 1 แก้วที่สั่ง รับ ' + d.points_per_cup + ' แต้ม' : '';
+  if (d.redeem_enabled) {
+    rate += (rate ? ' · ' : '') + (d.redeem_value > 0
+      ? 'ตอนนี้แลกเป็นส่วนลดได้ ' + baht(d.redeem_value) + ' บาท'
+      : 'สะสมครบ ' + d.redeem_min + ' แต้ม แลกเป็นส่วนลดได้');
+  }
+  $('rate').textContent = rate || 'ขอบคุณที่อุดหนุนเสมอมา';
 
   // ระดับสมาชิกจากจำนวนแก้วสะสม
   const c = d.total_cups;
@@ -261,6 +265,8 @@ function renderHistory() {
     if (cancelled) tags += '<span class="tag cancel">ยกเลิกแล้ว</span>';
     if (o.promo_code) tags += '<span class="tag promo">' + esc(o.promo_code) +
       ' −' + baht(o.discount) + '</span>';
+    if (o.points_used) tags += '<span class="tag promo">ใช้ ' + o.points_used +
+      ' แต้ม −' + baht(o.points_discount) + '</span>';
 
     const lines = o.items.map(function (i) {
       return '<div class="li"><span class="q">' + i.qty + 'x</span><span>' + esc(i.name) +
@@ -300,7 +306,7 @@ function cancelOrder(orderId, btn) {
   btn.textContent = 'กำลังยกเลิก…';
 
   apiPost({ action: 'cancelOrder', idToken: IDTOKEN, orderId: orderId })
-    .then(function () {
+    .then(function (r) {
       DATA.orders.forEach(function (o) {
         if (o.order_id === orderId) {
           o.order_status = 'cancelled';
@@ -309,6 +315,8 @@ function cancelOrder(orderId, btn) {
         }
       });
       renderHistory();
+      // แต้มเปลี่ยนหลังยกเลิก จึงโหลดข้อมูลใหม่ให้ตรงกับชีต
+      api({ action: 'member', idToken: IDTOKEN }).then(render).catch(function () {});
     })
     .catch(function (e) {
       alert(e.message);
