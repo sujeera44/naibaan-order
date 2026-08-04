@@ -213,6 +213,16 @@ textarea{resize:vertical;min-height:62px}
 .fdbar{margin-top:10px;padding:9px 12px;border-radius:9px;font-size:12.5px;
   background:var(--grey-bg);color:var(--ink-2)}
 .fdbar.on{background:var(--sand-soft);color:var(--brand-d);font-weight:500}
+.ptRow{display:flex;align-items:center;gap:14px;padding:12px 14px;
+  border:1.5px solid var(--line-2);border-radius:12px}
+.ptRow.on{border-color:var(--brand);background:var(--brand-soft)}
+.ptRow .v{flex:1;min-width:0}
+.ptRow .v b{display:block;font-size:17px;font-weight:700}
+.ptRow .v span{display:block;font-size:12px;color:var(--ink-2)}
+.stepper{display:flex;align-items:center;gap:12px}
+.stepper button{width:32px;height:32px;border:1.5px solid var(--line-2);border-radius:50%;
+  font-size:18px;line-height:1;color:var(--brand);text-align:center}
+.stepper button:disabled{color:var(--ink-3);border-color:var(--line)}
 .promo{display:flex;gap:9px}
 .promo input{flex:1;min-width:0;text-transform:lowercase}
 .promo .cta{flex:none}
@@ -290,6 +300,11 @@ a.cta{text-decoration:none}
       <div class="note info" id="phoneNote">เบอร์โทรจำเป็นเสมอ ถ้าหาที่ส่งไม่เจอ ทางร้านจะโทรหาคุณ</div>
     </section>
 
+    <section class="block hide" id="secPoints">
+      <div class="bh"><h2>ใช้แต้มสะสม</h2><span class="r" id="ptBal"></span></div>
+      <div id="ptBox"></div>
+    </section>
+
     <section class="block">
       <div class="bh"><h2>โค้ดส่วนลด</h2></div>
       <div class="promo">
@@ -356,7 +371,7 @@ const THAI_MON = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','
 var CFG = null, IDTOKEN = null, CART = [];
 var FULFILL = 'delivery', DAY = null, ROUND = null, POINT = '', PAY = 'promptpay';
 var VIEW = 'menu', CLIENT_ORDER_ID = null, CATS = [];
-var ORDER = null, PROMO = null;
+var ORDER = null, PROMO = null, PTS = 0;
 
 /* ── helpers ──────────────────────────────── */
 function baht(n) { return Number(n).toLocaleString('th-TH'); }
@@ -407,6 +422,21 @@ function qtyOf(id) {
 }
 function discount() {
   return PROMO ? Math.min(PROMO.discount, subtotal()) : 0;
+}
+/** ส่วนลดจากแต้ม หักจากยอดที่เหลือหลังหักโค้ดแล้ว */
+function ptsDiscount() {
+  const cfg = CFG.points || {};
+  if (!cfg.enabled || !PTS) return 0;
+  return Math.min(PTS * cfg.rate, Math.max(0, subtotal() - discount()));
+}
+/** แต้มสูงสุดที่ใช้ได้กับตะกร้าตอนนี้ */
+function maxPts() {
+  const cfg = CFG.points || {};
+  const c = CFG.customer || {};
+  if (!cfg.enabled) return 0;
+  const byBalance = Math.floor(c.points / cfg.step) * cfg.step;
+  const byCart = Math.floor(Math.max(0, subtotal() - discount()) / cfg.rate / cfg.step) * cfg.step;
+  return Math.max(0, Math.min(byBalance, byCart));
 }
 function pointObj() {
   return CFG.drop_points.filter(function (p) { return p.point_id === POINT; })[0] || null;
@@ -760,7 +790,7 @@ function renderBar() {
   if (VIEW === 'done' || (VIEW === 'menu' && !n)) { bar.classList.add('hide'); return; }
   bar.classList.remove('hide');
 
-  const f = fee(), d = discount();
+  const f = fee(), d = discount() + ptsDiscount();
   $('barSub').textContent = n + ' แก้ว · ' +
     (FULFILL === 'pickup' ? 'มารับเอง' : (f ? 'ค่าส่ง ' + baht(f) + ' ฿' : 'ส่งฟรี')) +
     (d ? ' · ลด ' + baht(d) + ' ฿' : '');
@@ -808,7 +838,7 @@ function goCheckout() {
   $('tabs').classList.add('hide');
   $('viewCheckout').classList.remove('hide');
   window.scrollTo(0, 0);
-  renderSummary(); renderBar();
+  renderPoints(); renderSummary(); renderBar();
 }
 
 function renderSummary() {
@@ -844,9 +874,59 @@ function renderSummary() {
     html += '<div class="srow"><span class="muted">ส่วนลด ' + esc(PROMO.code) +
       '</span><span style="color:var(--brand)">−' + baht(PROMO.discount) + '</span></div>';
   }
+  if (ptsDiscount() > 0) {
+    html += '<div class="srow"><span class="muted">ใช้ ' + PTS +
+      ' แต้ม</span><span style="color:var(--brand)">−' + baht(ptsDiscount()) + '</span></div>';
+  }
   html += '<div class="srow tot"><span>รวมทั้งสิ้น</span><span>' +
-    baht(Math.max(0, subtotal() - discount()) + f) + ' ฿</span></div>';
+    baht(Math.max(0, subtotal() - discount() - ptsDiscount()) + f) + ' ฿</span></div>';
   $('sumBox').innerHTML = html;
+}
+
+/* ── points redemption ────────────────────── */
+function renderPoints() {
+  const cfg = CFG.points || {};
+  const c = CFG.customer || {};
+  const sec = $('secPoints');
+
+  if (!cfg.enabled || !c.points) { sec.classList.add('hide'); return; }
+  sec.classList.remove('hide');
+  $('ptBal').textContent = 'มี ' + baht(c.points) + ' แต้ม';
+
+  const max = maxPts();
+  if (PTS > max) PTS = max;
+
+  if (max < cfg.min) {
+    $('ptBox').innerHTML = '<div class="note info">' +
+      (c.points < cfg.min
+        ? 'สะสมครบ ' + cfg.min + ' แต้มเมื่อไหร่ ใช้เป็นส่วนลดได้เลย'
+        : 'ยอดในตะกร้ายังน้อยเกินกว่าจะใช้แต้ม') + '</div>';
+    return;
+  }
+
+  $('ptBox').innerHTML =
+    '<div class="ptRow' + (PTS ? ' on' : '') + '">' +
+      '<span class="v">' +
+        (PTS ? '<b>−' + baht(ptsDiscount()) + ' ฿</b><span>ใช้ ' + PTS + ' แต้ม</span>'
+             : '<b>ใช้ได้สูงสุด ' + baht(max * cfg.rate) + ' ฿</b>' +
+               '<span>' + cfg.rate + ' แต้ม = ' + cfg.rate + ' บาท · ทีละ ' + cfg.step + ' แต้ม</span>') +
+      '</span>' +
+      '<span class="stepper">' +
+        '<button type="button" id="ptMinus"' + (PTS <= 0 ? ' disabled' : '') + '>−</button>' +
+        '<button type="button" id="ptPlus"' + (PTS + cfg.step > max ? ' disabled' : '') + '>+</button>' +
+      '</span>' +
+    '</div>' +
+    (PTS ? '' : '<div class="note info" style="margin-top:9px">กด + เพื่อใช้แต้มเป็นส่วนลด</div>');
+
+  $('ptMinus').addEventListener('click', function () {
+    PTS = Math.max(0, PTS - cfg.step);
+    if (PTS < cfg.min) PTS = 0;
+    renderPoints(); renderSummary(); renderBar();
+  });
+  $('ptPlus').addEventListener('click', function () {
+    PTS = Math.min(max, (PTS || cfg.min - cfg.step) + cfg.step);
+    renderPoints(); renderSummary(); renderBar();
+  });
 }
 
 function renderPay() {
@@ -887,12 +967,12 @@ function applyPromo() {
       $('promoMsg').innerHTML = '<div class="note info" ' +
         'style="background:var(--sand-soft);color:var(--brand-d)">' +
         esc(r.name) + ' — ลด ' + baht(r.discount) + ' บาท</div>';
-      renderSummary(); renderBar();
+      renderPoints(); renderSummary(); renderBar();
     })
     .catch(function (e) {
       PROMO = null;
       $('promoMsg').innerHTML = '<div class="note err">' + esc(e.message) + '</div>';
-      renderSummary(); renderBar();
+      renderPoints(); renderSummary(); renderBar();
     })
     .then(function () { btn.disabled = false; });
 }
@@ -904,7 +984,7 @@ function clearPromo() {
   document.querySelector('.promo').classList.remove('locked');
   $('promoBtn').textContent = 'ใช้โค้ด';
   $('promoMsg').innerHTML = '';
-  renderSummary(); renderBar();
+  renderPoints(); renderSummary(); renderBar();
 }
 
 /* ── submit ───────────────────────────────── */
@@ -933,6 +1013,7 @@ function submitOrder() {
     addressDetail: FULFILL === 'pickup' ? '' : detail,
     nickname: name, phone: phone, paymentMethod: PAY, note: $('fNote').value.trim(),
     promoCode: PROMO ? PROMO.code : '',
+    pointsUsed: PTS,
     items: CART.map(function (l) {
       return { menuId: l.menuId, qty: l.qty, optionIds: l.optionIds, note: l.note || '' };
     })
@@ -960,8 +1041,10 @@ function showDone(r) {
 
   var html = '<div class="oid">' + esc(r.order_id) + '</div>' +
     '<div class="amt">' + baht(r.total) + ' ฿</div>' +
-    (r.discount ? '<div style="font-size:13px;color:var(--brand);margin:-4px 0 6px">' +
+    (r.discount ? '<div style="font-size:13px;color:var(--brand);margin:-4px 0 2px">' +
       'ใช้โค้ด ' + esc(r.promo_code) + ' ลด ' + baht(r.discount) + ' บาทแล้ว</div>' : '') +
+    (r.points_discount ? '<div style="font-size:13px;color:var(--brand);margin:-2px 0 6px">' +
+      'ใช้ ' + r.points_used + ' แต้ม ลด ' + baht(r.points_discount) + ' บาทแล้ว</div>' : '') +
     '<div class="muted" style="font-size:14px">' +
     (r.fulfillment === 'pickup' ? 'รับเองที่ร้าน ' : 'ส่ง ') +
     dayLabel(r.delivery_date, null) + ' ' + r.round_time + ' น.' +
