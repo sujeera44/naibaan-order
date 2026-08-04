@@ -838,7 +838,7 @@ function goCheckout() {
   $('tabs').classList.add('hide');
   $('viewCheckout').classList.remove('hide');
   window.scrollTo(0, 0);
-  renderPoints(); renderSummary(); renderBar();
+  renderRedeem(); renderSummary(); renderBar();
 }
 
 function renderSummary() {
@@ -884,7 +884,7 @@ function renderSummary() {
 }
 
 /* ── points redemption ────────────────────── */
-function renderPoints() {
+function renderRedeem() {
   const cfg = CFG.points || {};
   const c = CFG.customer || {};
   const sec = $('secPoints');
@@ -921,11 +921,11 @@ function renderPoints() {
   $('ptMinus').addEventListener('click', function () {
     PTS = Math.max(0, PTS - cfg.step);
     if (PTS < cfg.min) PTS = 0;
-    renderPoints(); renderSummary(); renderBar();
+    renderRedeem(); renderSummary(); renderBar();
   });
   $('ptPlus').addEventListener('click', function () {
     PTS = Math.min(max, (PTS || cfg.min - cfg.step) + cfg.step);
-    renderPoints(); renderSummary(); renderBar();
+    renderRedeem(); renderSummary(); renderBar();
   });
 }
 
@@ -967,12 +967,12 @@ function applyPromo() {
       $('promoMsg').innerHTML = '<div class="note info" ' +
         'style="background:var(--sand-soft);color:var(--brand-d)">' +
         esc(r.name) + ' — ลด ' + baht(r.discount) + ' บาท</div>';
-      renderPoints(); renderSummary(); renderBar();
+      renderRedeem(); renderSummary(); renderBar();
     })
     .catch(function (e) {
       PROMO = null;
       $('promoMsg').innerHTML = '<div class="note err">' + esc(e.message) + '</div>';
-      renderPoints(); renderSummary(); renderBar();
+      renderRedeem(); renderSummary(); renderBar();
     })
     .then(function () { btn.disabled = false; });
 }
@@ -984,7 +984,7 @@ function clearPromo() {
   document.querySelector('.promo').classList.remove('locked');
   $('promoBtn').textContent = 'ใช้โค้ด';
   $('promoMsg').innerHTML = '';
-  renderPoints(); renderSummary(); renderBar();
+  renderRedeem(); renderSummary(); renderBar();
 }
 
 /* ── submit ───────────────────────────────── */
