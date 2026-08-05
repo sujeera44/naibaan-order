@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>สรุปรอบส่ง — NaiBaaN Cafe'</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --brand:#A93F3F; --brand-d:#8C3232; --brand-soft:#FBF0EF;
+  --sand:#D2AF91; --sand-soft:#FAF3EC;
+  --bg:#FFFFFF; --grey-bg:#F6F6F6; --line:#EEEEEE; --line-2:#E0E0E0;
+  --ink:#1F1F1F; --ink-2:#707070; --ink-3:#A6A6A6;
+  --ok:#3E7A46; --ok-soft:#EAF2EA;
+  --font:'IBM Plex Sans Thai',-apple-system,BlinkMacSystemFont,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);
+     font-size:15px;line-height:1.55;padding-bottom:40px}
+h1,h2{margin:0;font-weight:600;letter-spacing:-0.01em}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.hide{display:none !important}
+.wrap{max-width:640px;margin:0 auto}
+
+/* header */
+.top{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line)}
+.top-in{max-width:640px;margin:0 auto;padding:12px 16px;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.top h1{font-size:16px;flex:1;min-width:0}
+input[type=date]{font:inherit;font-size:14px;padding:7px 10px;border:1.5px solid var(--line-2);
+  border-radius:9px;background:#fff;color:var(--ink)}
+.reload{font-size:13px;padding:7px 13px;border:1.5px solid var(--line-2);border-radius:9px;
+  color:var(--ink-2)}
+
+/* round tabs */
+.rt{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:0 16px 11px}
+.rt::-webkit-scrollbar{display:none}
+.rtab{flex:none;padding:7px 15px;border-radius:18px;font-size:13.5px;font-weight:500;
+  background:var(--grey-bg);color:var(--ink-2);white-space:nowrap}
+.rtab[aria-pressed="true"]{background:var(--brand);color:#fff}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:7px solid var(--grey-bg)}
+.stat{padding:14px 6px;text-align:center;border-right:1px solid var(--line)}
+.stat:last-child{border-right:0}
+.stat b{display:block;font-size:20px;font-weight:700}
+.stat span{display:block;font-size:11px;color:var(--ink-2);margin-top:1px}
+.stat.warn b{color:var(--brand)}
+
+.block{padding:18px 16px;border-bottom:7px solid var(--grey-bg)}
+.block:last-of-type{border-bottom:0}
+.bh{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:11px}
+.bh h2{font-size:17px}
+.bh .r{font-size:12px;color:var(--ink-2)}
+
+/* prep list */
+.prep{display:flex;align-items:center;gap:12px;padding:11px 13px;margin-bottom:8px;
+  border:1.5px solid var(--sand);border-radius:11px;background:var(--sand-soft)}
+.prep .n{flex:1;font-size:15px;font-weight:500}
+.prep .q{flex:none;font-size:17px;font-weight:700;color:var(--brand-d)}
+
+/* point group */
+.pg{margin-bottom:18px}
+.pgh{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:9px;
+  background:var(--grey-bg);margin-bottom:9px}
+.pgh .n{flex:1;font-size:14.5px;font-weight:600}
+.pgh .c{font-size:12px;color:var(--ink-2)}
+
+/* order card */
+.oc{border:1.5px solid var(--line-2);border-radius:12px;padding:13px 14px;margin-bottom:9px}
+.oc.paid{border-color:#CFE0CB;background:#FCFDFC}
+.oc .top2{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.oc .nm{font-size:15px;font-weight:600}
+.oc .tel{font-size:13px;color:var(--brand);text-decoration:none}
+.oc .ad{font-size:12px;color:var(--ink-2);margin-top:1px}
+.oc .amt{font-size:16px;font-weight:700;text-align:right;white-space:nowrap}
+.oc .oid{font-size:10.5px;color:var(--ink-3);text-align:right}
+.oc .lines{margin-top:9px;padding-top:9px;border-top:1px dashed var(--line-2)}
+.li{display:flex;gap:9px;font-size:13.5px;padding:2px 0}
+.li .q{flex:none;color:var(--ink-2);min-width:24px;font-weight:600}
+.li .o{font-size:11.5px;color:var(--ink-3)}
+.li .nt{font-size:11.5px;color:var(--brand)}
+.foot{display:flex;align-items:center;gap:8px;margin-top:11px;flex-wrap:wrap}
+.tag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:9px}
+.tag.wait{background:var(--brand-soft);color:var(--brand-d)}
+.tag.paid{background:var(--ok-soft);color:var(--ok)}
+.tag.cod{background:var(--grey-bg);color:var(--ink-2)}
+.tag.promo{background:var(--sand-soft);color:var(--brand-d)}
+.act{margin-left:auto;display:flex;gap:7px}
+.act button{font-size:12px;padding:6px 12px;border-radius:8px;border:1.5px solid var(--line-2);
+  color:var(--ink-2)}
+.act button.pri{border-color:var(--brand);background:var(--brand);color:#fff}
+.act button:disabled{opacity:.5}
+
+/* gate */
+.gate{padding:40px 20px;max-width:380px;margin:0 auto;text-align:center}
+.gate input{width:100%;font:inherit;font-size:15px;padding:12px;border:1.5px solid var(--line-2);
+  border-radius:10px;margin:14px 0}
+.gate button{width:100%;padding:13px;border-radius:10px;background:var(--brand);color:#fff;
+  font-weight:600;text-align:center}
+.note{padding:12px 14px;border-radius:10px;font-size:13px;background:var(--grey-bg);color:var(--ink-2)}
+.note.err{background:var(--brand-soft);color:var(--brand-d)}
+.center{text-align:center;padding:50px 20px;color:var(--ink-2);font-size:14px}
+</style>
+</head>
+<body>
+
+<!-- ══ หน้าใส่รหัส ══ -->
+<div id="gate" class="gate hide">
+  <h1 style="font-size:19px;color:var(--brand-d)">สรุปรอบส่ง</h1>
+  <p style="font-size:13px;color:var(--ink-2)">หน้านี้สำหรับเจ้าของร้าน</p>
+  <input id="keyInput" type="password" placeholder="รหัสเจ้าของร้าน" autocomplete="off">
+  <button type="button" id="keyBtn">เข้าสู่ระบบ</button>
+  <div id="gateMsg" style="margin-top:12px"></div>
+</div>
+
+<!-- ══ หน้าสรุป ══ -->
+<div id="app" class="hide">
+  <div class="top">
+    <div class="top-in">
+      <h1>สรุปรอบส่ง</h1>
+      <input id="dateInput" type="date">
+      <button type="button" class="reload" id="reloadBtn">รีเฟรช</button>
+    </div>
+    <div class="rt" id="roundTabs"></div>
+  </div>
+
+  <div class="wrap">
+    <div class="stats" id="stats"></div>
+    <div id="body"><div class="center">กำลังโหลด…</div></div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   แก้บรรทัดนี้บรรทัดเดียว
+   ═══════════════════════════════════════════════ */
+const API_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
+/* ═══════════════════════════════════════════════ */
+
+const $ = function (id) { return document.getElementById(id); };
+const THAI_DAY = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+const THAI_MON = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+var KEY = '', DATE = '', ROUND = '', DATA = null;
+
+function baht(n) { return Number(n).toLocaleString('th-TH'); }
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+  });
+}
+function today() {
+  const d = new Date();
+  return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+}
+function thDate(ymd) {
+  const p = String(ymd).split('-');
+  if (p.length !== 3) return String(ymd || '');
+  return THAI_DAY[new Date(+p[0], +p[1] - 1, +p[2]).getDay()] + ' ' +
+    Number(p[2]) + ' ' + THAI_MON[Number(p[1]) - 1] + ' ' + String(Number(p[0]) + 543).slice(-2);
+}
+
+function store(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function load(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
+
+function api(params) {
+  const q = Object.keys(params).map(function (k) {
+    return k + '=' + encodeURIComponent(params[k]);
+  }).join('&');
+  return fetch(API_URL + '?' + q).then(readJson);
+}
+function apiPost(body) {
+  return fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(body)
+  }).then(readJson);
+}
+function readJson(res) {
+  return res.text().then(function (t) {
+    var j;
+    try { j = JSON.parse(t); }
+    catch (e) { throw new Error('เซิร์ฟเวอร์ตอบกลับผิดรูปแบบ'); }
+    if (!j.ok) throw new Error(j.error || 'เกิดข้อผิดพลาด');
+    return j.data;
+  });
+}
+
+/* ── load ─────────────────────────────────── */
+function loadSummary() {
+  $('body').innerHTML = '<div class="center">กำลังโหลด…</div>';
+  const p = { action: 'roundSummary', key: KEY, date: DATE };
+  if (ROUND) p.round = ROUND;
+
+  api(p).then(function (d) {
+    DATA = d;
+    renderTabs(); renderStats(); renderBody();
+  }).catch(function (e) {
+    $('stats').innerHTML = '';
+    $('body').innerHTML = '<div style="padding:16px"><div class="note err">' +
+      esc(e.message) + '</div></div>';
+  });
+}
+
+function renderTabs() {
+  const rounds = DATA.rounds_today || [];
+  $('roundTabs').innerHTML =
+    '<button type="button" class="rtab" data-r="" aria-pressed="' + (!ROUND) + '">ทุกรอบ</button>' +
+    rounds.map(function (r) {
+      return '<button type="button" class="rtab" data-r="' + r + '" aria-pressed="' +
+        (ROUND === r) + '">' + r + ' น.</button>';
+    }).join('');
+
+  Array.prototype.forEach.call($('roundTabs').children, function (b) {
+    b.addEventListener('click', function () { ROUND = b.dataset.r; loadSummary(); });
+  });
+}
+
+function renderStats() {
+  $('stats').innerHTML =
+    '<div class="stat"><b>' + baht(DATA.order_count) + '</b><span>ออเดอร์</span></div>' +
+    '<div class="stat"><b>' + baht(DATA.cups) + '</b><span>แก้ว</span></div>' +
+    '<div class="stat"><b>' + baht(DATA.revenue) + '</b><span>ยอดรวม ฿</span></div>' +
+    '<div class="stat' + (DATA.unpaid ? ' warn' : '') + '"><b>' + baht(DATA.unpaid) +
+      '</b><span>ค้างชำระ ฿</span></div>';
+}
+
+function renderBody() {
+  if (!DATA.order_count) {
+    $('body').innerHTML = '<div style="padding:18px 16px"><div class="note">' +
+      'ยังไม่มีออเดอร์ของ ' + thDate(DATA.date) +
+      (ROUND ? ' รอบ ' + ROUND + ' น.' : '') + '</div></div>';
+    return;
+  }
+
+  var html = '';
+
+  // รายการชงรวม
+  html += '<section class="block"><div class="bh"><h2>รายการชงรวม</h2>' +
+    '<span class="r">' + DATA.cups + ' แก้ว' +
+    (DATA.pickup_cups ? ' · มารับเอง ' + DATA.pickup_cups : '') + '</span></div>';
+  DATA.prep_list.forEach(function (p) {
+    html += '<div class="prep"><span class="n">' + esc(p.label) + '</span>' +
+      '<span class="q">' + p.qty + '</span></div>';
+  });
+  html += '</section>';
+
+  // แยกตามจุดส่ง
+  html += '<section class="block"><div class="bh"><h2>รายการส่ง</h2>' +
+    '<span class="r">' + DATA.by_point.length + ' จุด</span></div>';
+
+  DATA.by_point.forEach(function (g) {
+    var cups = 0;
+    g.orders.forEach(function (o) { cups += o.cups; });
+    html += '<div class="pg"><div class="pgh"><span class="n">' + esc(g.point) + '</span>' +
+      '<span class="c">' + g.orders.length + ' ออเดอร์ · ' + cups + ' แก้ว</span></div>';
+
+    g.orders.forEach(function (o) {
+      const paid = o.payment_status === 'paid';
+      const delivered = o.order_status === 'delivered';
+
+      var tags = '';
+      if (paid) tags += '<span class="tag paid">ชำระแล้ว</span>';
+      else if (o.payment_method === 'cod') tags += '<span class="tag cod">เก็บปลายทาง ' + baht(o.total) + '</span>';
+      else tags += '<span class="tag wait">รอสลิป</span>';
+      if (delivered) tags += '<span class="tag paid">ส่งแล้ว</span>';
+      if (o.promo_code) tags += '<span class="tag promo">' + esc(o.promo_code) + '</span>';
+      if (o.points_used) tags += '<span class="tag promo">ใช้ ' + o.points_used + ' แต้ม</span>';
+
+      const lines = o.items.map(function (i) {
+        return '<div class="li"><span class="q">' + i.qty + 'x</span><span>' + esc(i.name) +
+          (i.options_text ? ' <span class="o">' + esc(i.options_text) + '</span>' : '') +
+          (i.item_note ? '<br><span class="nt">หมายเหตุ: ' + esc(i.item_note) + '</span>' : '') +
+          '</span></div>';
+      }).join('');
+
+      html += '<div class="oc' + (paid ? ' paid' : '') + '">' +
+        '<div class="top2"><div>' +
+          '<div class="nm">' + esc(o.nickname) + '</div>' +
+          '<a class="tel" href="tel:' + esc(o.phone) + '">' + esc(o.phone) + '</a>' +
+          (o.address_detail ? '<div class="ad">' + esc(o.address_detail) + '</div>' : '') +
+          (o.note ? '<div class="ad">ฝากถึงร้าน: ' + esc(o.note) + '</div>' : '') +
+        '</div><div>' +
+          '<div class="amt">' + baht(o.total) + ' ฿</div>' +
+          '<div class="oid">' + esc(o.order_id) + '</div>' +
+        '</div></div>' +
+        '<div class="lines">' + lines + '</div>' +
+        '<div class="foot">' + tags + '<span class="act">' +
+          (paid ? '' : '<button type="button" data-pay="' + esc(o.order_id) + '">รับเงินแล้ว</button>') +
+          (delivered ? '' : '<button type="button" class="pri" data-del="' +
+            esc(o.order_id) + '">ส่งแล้ว</button>') +
+        '</span></div></div>';
+    });
+    html += '</div>';
+  });
+  html += '</section>';
+
+  $('body').innerHTML = html;
+
+  Array.prototype.forEach.call($('body').querySelectorAll('[data-pay]'), function (b) {
+    b.addEventListener('click', function () {
+      mark(b, b.dataset.pay, 'payment_status', 'paid', true);
+    });
+  });
+  Array.prototype.forEach.call($('body').querySelectorAll('[data-del]'), function (b) {
+    b.addEventListener('click', function () {
+      mark(b, b.dataset.del, 'order_status', 'delivered', false);
+    });
+  });
+}
+
+function mark(btn, orderId, field, value, notify) {
+  btn.disabled = true;
+  btn.textContent = 'กำลังบันทึก…';
+  apiPost({ action: 'markOrder', key: KEY, orderId: orderId,
+            field: field, value: value, notify: notify ? 'TRUE' : 'FALSE' })
+    .then(function () { loadSummary(); })
+    .catch(function (e) {
+      alert(e.message);
+      btn.disabled = false;
+      btn.textContent = field === 'payment_status' ? 'รับเงินแล้ว' : 'ส่งแล้ว';
+    });
+}
+
+/* ── gate ─────────────────────────────────── */
+function openApp() {
+  $('gate').classList.add('hide');
+  $('app').classList.remove('hide');
+  DATE = DATE || today();
+  $('dateInput').value = DATE;
+  loadSummary();
+}
+
+function tryKey(k) {
+  return api({ action: 'roundSummary', key: k, date: today() });
+}
+
+$('keyBtn').addEventListener('click', function () {
+  const k = $('keyInput').value.trim();
+  if (!k) return;
+  $('gateMsg').innerHTML = '<div class="note">กำลังตรวจสอบ…</div>';
+  tryKey(k).then(function () {
+    KEY = k; store('nb_owner_key', k);
+    $('gateMsg').innerHTML = '';
+    openApp();
+  }).catch(function (e) {
+    $('gateMsg').innerHTML = '<div class="note err">' + esc(e.message) + '</div>';
+  });
+});
+$('keyInput').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') $('keyBtn').click();
+});
+
+$('dateInput').addEventListener('change', function () {
+  DATE = $('dateInput').value;
+  ROUND = '';
+  loadSummary();
+});
+$('reloadBtn').addEventListener('click', loadSummary);
+
+/* ── start ────────────────────────────────── */
+(function start() {
+  if (API_URL.indexOf('PASTE') === 0) {
+    document.body.innerHTML = '<div class="gate"><div class="note err">' +
+      'ยังไม่ได้ใส่ API_URL ในไฟล์ owner.html</div></div>';
+    return;
+  }
+  // รับรหัสจาก URL ได้ เช่น owner.html#key=xxxx
+  const m = String(location.hash || '').match(/key=([^&]+)/);
+  const saved = m ? decodeURIComponent(m[1]) : load('nb_owner_key');
+
+  if (!saved) { $('gate').classList.remove('hide'); return; }
+
+  tryKey(saved).then(function () {
+    KEY = saved; store('nb_owner_key', saved);
+    if (m) history.replaceState(null, '', location.pathname);  // ล้างรหัสออกจาก URL
+    openApp();
+  }).catch(function () {
+    $('gate').classList.remove('hide');
+  });
+})();
+</script>
+</body>
+</html>
