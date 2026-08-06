@@ -4,9 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>สั่งเครื่องดื่ม — NaiBaaN Cafe'</title>
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://script.googleusercontent.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
 <style>
 :root{
   --brand:#A93F3F; --brand-d:#8C3232; --brand-soft:#FBF0EF;
@@ -19,7 +22,7 @@
 html,body{margin:0;padding:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--font);
      font-size:15px;line-height:1.55;padding-bottom:96px}
-h1,h2,h3{margin:0;font-weight:600;letter-spacing:-0.01em}
+h1,h2,h3{margin:0;font-weight:700;letter-spacing:-0.01em}
 button{font:inherit;cursor:pointer;border:0;background:none;color:inherit;text-align:left}
 img{display:block}
 :focus-visible{outline:2px solid var(--brand);outline-offset:2px}
@@ -36,7 +39,7 @@ img{display:block}
 .top h1{font-size:17px}
 .top .sub{font-size:12px;color:var(--ink-2)}
 .pts{display:inline-block;background:var(--sand-soft);color:var(--brand-d);font-size:11px;
-     font-weight:600;padding:1px 8px;border-radius:9px;margin-left:5px}
+     font-weight:700;padding:1px 8px;border-radius:9px;margin-left:5px}
 
 /* ── sticky category tabs ───────────────── */
 .tabs{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line)}
@@ -44,7 +47,7 @@ img{display:block}
 .tabs-in::-webkit-scrollbar{display:none}
 .tab{flex:none;padding:13px 0;font-size:15px;font-weight:500;color:var(--ink-2);
      border-bottom:2.5px solid transparent;white-space:nowrap}
-.tab[aria-selected="true"]{color:var(--brand);border-bottom-color:var(--brand);font-weight:600}
+.tab[aria-selected="true"]{color:var(--brand);border-bottom-color:var(--brand);font-weight:700}
 
 /* ── blocks ─────────────────────────────── */
 .block{padding:18px 16px;border-bottom:7px solid var(--grey-bg)}
@@ -57,7 +60,7 @@ img{display:block}
 .seg{display:flex;background:var(--grey-bg);border-radius:10px;padding:3px;gap:3px;margin-bottom:14px}
 .seg button{flex:1;padding:9px;border-radius:8px;font-size:14px;font-weight:500;
             color:var(--ink-2);text-align:center}
-.seg button[aria-pressed="true"]{background:#fff;color:var(--brand);font-weight:600;
+.seg button[aria-pressed="true"]{background:#fff;color:var(--brand);font-weight:700;
   box-shadow:0 1px 3px rgba(0,0,0,.1)}
 
 /* ── day chips ──────────────────────────── */
@@ -76,7 +79,7 @@ img{display:block}
 .round[aria-pressed="true"] .radio{border-color:var(--brand)}
 .round[aria-pressed="true"] .radio::after{content:"";width:9px;height:9px;border-radius:50%;
   background:var(--brand)}
-.round .t{font-size:16px;font-weight:600}
+.round .t{font-size:16px;font-weight:700}
 .round .s{font-size:12px;color:var(--ink-2)}
 .round .rem{margin-left:auto;font-size:11px;color:var(--ink-3)}
 
@@ -87,7 +90,7 @@ select{width:100%;font:inherit;font-size:15px;padding:12px 38px 12px 13px;color:
   background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23707070' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 14px center}
 select:focus{border-color:var(--brand);outline:none}
-.badge{display:inline-block;font-size:11px;font-weight:600;padding:3px 10px;border-radius:9px}
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:9px}
 .badge.free{background:var(--sand-soft);color:var(--brand-d)}
 .badge.fee{background:var(--grey-bg);color:var(--ink-2)}
 
@@ -98,7 +101,7 @@ select:focus{border-color:var(--brand);outline:none}
       text-align:center;line-height:0;color:var(--ink-3);font-size:34px;font-weight:700}
 .gimg img{width:100%;height:100%;object-fit:cover}
 .rank{position:absolute;top:8px;left:8px;background:var(--brand);color:#fff;line-height:1;
-      font-size:11px;font-weight:600;padding:4px 9px;border-radius:9px}
+      font-size:11px;font-weight:700;padding:4px 9px;border-radius:9px}
 .gbody{display:block;padding:10px 12px 12px}
 .gbody .n{display:block;font-size:14px;font-weight:500;line-height:1.4;min-height:2.8em;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -124,14 +127,14 @@ select:focus{border-color:var(--brand);outline:none}
       background:var(--brand);color:#fff;display:grid;place-items:center;font-size:19px;line-height:1}
 .count{flex:none;min-width:32px;height:32px;border-radius:16px;
        background:var(--brand);color:#fff;display:grid;place-items:center;
-       font-size:13px;font-weight:600;padding:0 11px}
+       font-size:13px;font-weight:700;padding:0 11px}
 
 /* ── reorder ────────────────────────────── */
 .reorder{width:100%;display:flex;align-items:center;gap:12px;padding:13px 14px;
   border:1px solid var(--sand);border-radius:12px;background:#fff}
 .reorder .ic{flex:none;width:38px;height:38px;border-radius:50%;background:var(--sand-soft);
   display:grid;place-items:center;font-size:19px;color:var(--brand)}
-.reorder .t{font-size:14px;font-weight:600}
+.reorder .t{font-size:14px;font-weight:700}
 .reorder .s{font-size:12px;color:var(--ink-2);
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 
@@ -144,7 +147,7 @@ select:focus{border-color:var(--brand);outline:none}
 .shead h3{font-size:19px}
 .shead .p{font-size:16px;font-weight:700;color:var(--brand);margin-top:2px}
 .grp{padding:14px 0;border-bottom:1px solid var(--line)}
-.grp .lbl{font-size:13px;font-weight:600;margin-bottom:8px}
+.grp .lbl{font-size:13px;font-weight:700;margin-bottom:8px}
 .grp .lbl em{font-style:normal;font-weight:400;font-size:11px;color:var(--ink-2);margin-left:5px}
 .grp .lbl b{color:var(--brand);font-weight:500;font-size:11px;margin-left:5px}
 .opt{width:100%;display:flex;align-items:center;gap:11px;padding:9px 0}
@@ -169,10 +172,10 @@ select:focus{border-color:var(--brand);outline:none}
 .cline .cn{font-size:14.5px;font-weight:500}
 .cline .co{font-size:11.5px;color:var(--ink-2);margin-top:1px}
 .cline .cq{flex:none;display:flex;align-items:center;gap:9px}
-.cline .cnum{font-size:14px;font-weight:600;min-width:16px;text-align:center}
+.cline .cnum{font-size:14px;font-weight:700;min-width:16px;text-align:center}
 .qbtn{width:27px;height:27px;border:1.5px solid var(--line-2);border-radius:50%;
   font-size:15px;line-height:1;color:var(--brand);text-align:center;padding:0}
-.cline .cp{flex:none;min-width:52px;text-align:right;font-size:14.5px;font-weight:600}
+.cline .cp{flex:none;min-width:52px;text-align:right;font-size:14.5px;font-weight:700}
 
 /* ── forms ──────────────────────────────── */
 label.f{display:block;margin-bottom:14px}
@@ -197,7 +200,7 @@ textarea{resize:vertical;min-height:62px}
 .bar-in .c1{font-size:12px;color:var(--ink-2)}
 .bar-in .c2{font-size:19px;font-weight:700}
 .cta{flex:none;padding:13px 26px;border-radius:10px;background:var(--brand);color:#fff;
-     font-size:15px;font-weight:600;text-align:center}
+     font-size:15px;font-weight:700;text-align:center}
 .cta[disabled]{background:var(--line-2);color:#fff}
 .cta.wide{flex:1}
 .cta.ghost{background:#fff;border:1.5px solid var(--line-2);color:var(--ink-2)}
@@ -240,7 +243,7 @@ textarea{resize:vertical;min-height:62px}
 .promo{display:flex;gap:9px}
 .promo input{flex:1;min-width:0;text-transform:lowercase}
 .promo .cta{flex:none}
-.promo.locked input{background:var(--sand-soft);color:var(--brand-d);font-weight:600;
+.promo.locked input{background:var(--sand-soft);color:var(--brand-d);font-weight:700;
   border-color:var(--sand)}
 a.cta{text-decoration:none}
 </style>
@@ -365,7 +368,7 @@ a.cta{text-decoration:none}
 </div>
 
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 <script>
 /* ═══════════════════════════════════════════════
    แก้สองบรรทัดนี้ก่อนใช้งาน
@@ -751,7 +754,7 @@ function openSheet(menu, line) {
       '<span class="qtybox">' +
       '<button type="button" class="qtybtn' + (zero ? ' danger' : '') + '" data-q="-1">' +
       (qty === 1 ? '🗑' : '−') + '</button>' +
-      '<span style="font-size:18px;font-weight:600;min-width:22px;text-align:center' +
+      '<span style="font-size:18px;font-weight:700;min-width:22px;text-align:center' +
       (zero ? ';color:var(--ink-3)' : '') + '">' + qty + '</span>' +
       '<button type="button" class="qtybtn" data-q="1">+</button></span></div>' +
       '<div style="display:flex;gap:10px;padding-bottom:6px">' +
@@ -1087,6 +1090,7 @@ function clearPromo() {
 
 /* ── submit ───────────────────────────────── */
 function submitOrder() {
+  if (!IDTOKEN) return showErr('กำลังยืนยันตัวตนกับไลน์ กรุณารอสักครู่แล้วกดใหม่');
   const detail = $('fDetail').value.trim();
   const name = $('fName').value.trim();
   const phone = $('fPhone').value.trim();
@@ -1268,28 +1272,18 @@ async function start() {
   if (LIFF_ID.indexOf('PASTE') === 0 || API_URL.indexOf('PASTE') === 0) {
     return fail('ยังไม่ได้ใส่ LIFF_ID หรือ API_URL ในไฟล์ index.html');
   }
-  try { await liff.init({ liffId: LIFF_ID }); }
-  catch (e) { return fail('เชื่อมต่อ LIFF ไม่สำเร็จ: ' + e.message); }
-  if (!liff.isLoggedIn()) { liff.login(); return; }
 
-  IDTOKEN = liff.getIDToken();
-  if (!IDTOKEN) return fail('ไม่ได้รับ ID token — ตรวจว่าติ๊ก scope openid ในหน้าตั้งค่า LIFF แล้ว');
+  // ยิงขอเมนูทันทีโดยไม่รอ LIFF — สองอย่างนี้ทำงานขนานกันได้
+  const catalogP = api({ action: 'catalog' });
+  const liffP = liff.init({ liffId: LIFF_ID });
 
-  try { CFG = await api({ action: 'bootstrap', idToken: IDTOKEN }); }
+  // ── รอบที่ 1: แสดงเมนูให้เร็วที่สุด ──
+  try { CFG = await catalogP; }
   catch (e) { return fail(e.message); }
   if (!CFG.shop_open) return fail('ขณะนี้ร้านปิดรับออเดอร์ชั่วคราว');
 
-  // ลำดับหมวดหมู่ตามลำดับที่พบใน sort_order ของชีต menu
+  CFG.customer = null;
   CFG.menu.forEach(function (m) { if (CATS.indexOf(m.category) < 0) CATS.push(m.category); });
-
-  const c = CFG.customer || {};
-  $('greet').innerHTML = (c.nickname ? 'สวัสดีคุณ' + esc(c.nickname) : 'ยินดีต้อนรับ') +
-    (c.points ? '<span class="pts">' + c.points + ' แต้ม</span>' : '');
-
-  POINT = c.default_point_id || '';
-  $('fDetail').value = c.default_detail || '';
-  $('fName').value = c.nickname || '';
-  $('fPhone').value = c.phone || '';
 
   Array.prototype.forEach.call($('segFulfill').children, function (b) {
     b.addEventListener('click', function () {
@@ -1297,7 +1291,6 @@ async function start() {
       renderFulfill(); renderBar();
     });
   });
-
   $('promoBtn').addEventListener('click', applyPromo);
 
   renderFulfill(); renderDays(); renderPoints();
@@ -1306,7 +1299,35 @@ async function start() {
   $('boot').classList.add('hide');
   $('viewMenu').classList.remove('hide');
 
+  // ── รอบที่ 2: ยืนยันตัวตนแล้วเติมข้อมูลส่วนตัว ──
+  try { await liffP; }
+  catch (e) { return fail('เชื่อมต่อ LIFF ไม่สำเร็จ: ' + e.message); }
+  if (!liff.isLoggedIn()) { liff.login(); return; }
+
+  IDTOKEN = liff.getIDToken();
+  if (!IDTOKEN) return fail('ไม่ได้รับ ID token — ตรวจว่าติ๊ก scope openid ในหน้าตั้งค่า LIFF แล้ว');
+
+  api({ action: 'me', idToken: IDTOKEN }).then(applyCustomer).catch(function () {});
   api({ action: 'myOrders', idToken: IDTOKEN }).then(setupReorder).catch(function () {});
+}
+
+/** เติมชื่อ เบอร์ แต้ม และที่อยู่ที่บันทึกไว้ หลังยืนยันตัวตนเสร็จ */
+function applyCustomer(c) {
+  CFG.customer = c || {};
+
+  $('greet').innerHTML = (c.nickname ? 'สวัสดีคุณ' + esc(c.nickname) : 'ยินดีต้อนรับ') +
+    (c.points ? '<span class="pts">' + c.points + ' แต้ม</span>' : '');
+
+  // ไม่ทับค่าที่ลูกค้าพิมพ์ไปแล้วระหว่างรอ
+  if (!POINT && c.default_point_id) {
+    POINT = c.default_point_id;
+    renderPoints();
+  }
+  if (!$('fDetail').value) $('fDetail').value = c.default_detail || '';
+  if (!$('fName').value) $('fName').value = c.nickname || '';
+  if (!$('fPhone').value) $('fPhone').value = c.phone || '';
+
+  renderPay(); renderRedeem(); renderBar();
 }
 
 start();
